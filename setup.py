@@ -15,7 +15,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    # TODO: put package requirements here
+    'PyYAML', 'hexdump', 'bitarray', 'pymongo'
 ]
 
 test_requirements = [
@@ -31,12 +31,18 @@ setup(
     author_email='adelosa@gmail.com',
     url='https://github.com/adelosa/mciutil',
     packages=[
-        'mciutil',
+        'mciutil'
     ],
     package_dir={'mciutil':
                  'mciutil'},
     include_package_data=True,
     install_requires=requirements,
+    entry_points={
+    	'console_scripts': [
+            'mideu = mciutil.cli.mideu:main',
+            'paramconv = mciutil.cli.paramconv:main',
+        ]
+    },
     license="BSD",
     zip_safe=False,
     keywords='mciutil',
