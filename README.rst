@@ -1,6 +1,6 @@
-===============================
-Mastercard file utilities
-===============================
+=========================
+MasterCard file utilities
+=========================
 
 .. image:: https://img.shields.io/travis/adelosa/mciutil.svg
         :target: https://travis-ci.org/adelosa/mciutil
@@ -9,7 +9,7 @@ Mastercard file utilities
         :target: https://pypi.python.org/pypi/mciutil
 
 
-Python Boilerplate contains all the boilerplate you need to create a Python package.
+Set of command line utilities to work with various MasterCard files.
 
 * Free software: BSD license
 * Documentation: https://mciutil.readthedocs.org.
@@ -17,4 +17,7 @@ Python Boilerplate contains all the boilerplate you need to create a Python pack
 Features
 --------
 
-* TODO
+Provides the following command line utilities:
+
+* paramconv: Convert 1014 blocked MasterCard MPE Parameter extract files between EBCDIC and ASCII
+* mideu: Read and extract 1014 blocked MasterCard IPM files

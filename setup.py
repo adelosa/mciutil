@@ -25,7 +25,7 @@ test_requirements = [
 setup(
     name='mciutil',
     version='0.1.0',
-    description="Python Boilerplate contains all the boilerplate you need to create a Python package.",
+    description="MasterCard file utilities",
     long_description=readme + '\n\n' + history,
     author="Anthony Delosa",
     author_email='adelosa@gmail.com',
@@ -54,9 +54,6 @@ setup(
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
     ],
     test_suite='tests',
     tests_require=test_requirements

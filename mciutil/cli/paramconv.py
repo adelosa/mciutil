@@ -1,13 +1,23 @@
 #!/usr/bin/env python
+"""
+paramconv
+---------
 
+Command line interface functions
+"""
 import argparse
 import hexdump
 
-from mciutil.mciutil import block, unblock, convert_text_eb2asc, \
-    convert_text_asc2eb
+from mciutil.mciutil import block, unblock, _convert_text_eb2asc, \
+    _convert_text_asc2eb
 
 
 def main():
+    """
+    main cli runner
+
+    :return: exit code
+    """
 
     parser = argparse.ArgumentParser(
         description="MasterCard parameter file conversion utility"
@@ -24,55 +34,56 @@ def main():
 
     args = parser.parse_args()
 
-    inputFilename = args.input
-    outputFilename = args.output
+    input_filename = args.input
+    output_filename = args.output
     if not args.output:
-        outputFilename = inputFilename + ".out"
+        output_filename = input_filename + ".out"
 
-    sourceFormat = args.sourceformat
+    source_format = args.sourceformat
     debug = args.debug
 
     # read file to string
-    inputFile = file(inputFilename, 'rb').read()
-    print "%s bytes read from %s" % (len(inputFile), inputFilename)
+    input_file = file(input_filename, 'rb').read()
+    print "%s bytes read from %s" % (len(input_file), input_filename)
 
     # deblock the file
-    inputFile = unblock(inputFile)
+    input_file = unblock(input_file)
 
     # convert the file from source to target encoding
-    outputArray = []     # output array
+    output_list = []     # output array
+    record_count = 0
 
     # convert the file
-    for recordCount, record in enumerate(inputFile, 1):
+    for record_count, record in enumerate(input_file, 1):
         # convert data
-        if sourceFormat == "ebcdic":
-            record = convert_text_eb2asc(record)
+        if source_format == "ebcdic":
+            record = _convert_text_eb2asc(record)
         else:
-            record = convert_text_asc2eb(record)
+            record = _convert_text_asc2eb(record)
 
         # add converted record data to output
-        outputArray.append(record)
+        output_list.append(record)
 
     # re-block the data
-    outputFile = block(outputArray)
+    output_file = block(output_list)
 
     # save to file
-    with open(outputFilename, "wb") as outputCsv:
-        outputCsv.write(outputFile)
+    with open(output_filename, "wb") as output_csv:
+        output_csv.write(output_file)
 
-    print "%s bytes written to %s" % (len(outputFile), outputFilename)
-    print "%s records" % recordCount
+    print "%s bytes written to %s" % (len(output_file), output_filename)
+    print "%s records" % record_count
 
     if debug:
         print "DEBUG:Input first 5000 bytes"
-        hexdump.hexdump(inputFile[:5000])
+        hexdump.hexdump(input_file[:5000])
         print "DEBUG:Output first 5000 bytes"
-        hexdump.hexdump(outputFile[:5000])
+        hexdump.hexdump(output_file[:5000])
 
         print "DEBUG:Input last 5000 bytes"
-        hexdump.hexdump(inputFile[len(outputFile)-5000:len(inputFile)])
+        hexdump.hexdump(input_file[len(output_file)-5000:len(input_file)])
         print "DEBUG:Output last 5000 bytes"
-        hexdump.hexdump(outputFile[len(outputFile)-5000:len(outputFile)])
+        hexdump.hexdump(output_file[len(output_file)-5000:len(output_file)])
 
     print "Done!"
     exit(0)

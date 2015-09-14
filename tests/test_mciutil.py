@@ -1,8 +1,9 @@
 from unittest import TestCase
 import hexdump
 
-from mciutil.mciutil import _vbs_to_line, _line_to_vbs, convert_text_asc2eb, \
-    get_message_elements, unblock, block, _get_de43_elements, filter_dictionary
+from mciutil.mciutil import vbs_unpack, vbs_pack, _convert_text_asc2eb, \
+    get_message_elements, unblock, block, _get_de43_elements, \
+    _mask_pan
 
 CONFIG = {
     'data_elements':
@@ -78,20 +79,23 @@ class TestGetMessageElements(TestCase):
         message_elements = get_message_elements(
             message_raw, CONFIG['data_elements'], 'ascii')
 
+        print message_elements
+
         # print message_elements
         self.assertEquals(message_elements["DE2"], "444455*******555")
         self.assertEquals(message_elements["DE3"], "111111")
         self.assertEquals(message_elements["DE4"], "000000009999")
+        self.assertEquals(message_elements["PDS0001"], "Y")
 
     def test_get_message_elements_ebcdic(self):
         message_raw = "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04" \
                       "\x00\x00\x00\x00" + \
-            convert_text_asc2eb("164444555544445555111111000000009999201508"
-                                "151715123456789012333123423579957991200000"
-                                "012306120612345612345657994211111111145BIG"
-                                " BOBS\\70 FERNDALE ST\\ANNERLEY\\4103  QLD"
-                                "AUS0080001001Y9990160000000000000001123456"
-                                "7806999999")
+            _convert_text_asc2eb("164444555544445555111111000000009999201508"
+                                 "151715123456789012333123423579957991200000"
+                                 "012306120612345612345657994211111111145BIG"
+                                 " BOBS\\70 FERNDALE ST\\ANNERLEY\\4103  QLD"
+                                 "AUS0080001001Y9990160000000000000001123456"
+                                 "7806999999")
         message_elements = get_message_elements(
             message_raw, CONFIG['data_elements'], 'ebcdic')
 
@@ -113,13 +117,13 @@ class TestGetMessageElements(TestCase):
 
     def test_vbs_to_line(self):
         vbs_record = "\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A1234567890"
-        records = _vbs_to_line(vbs_record)
+        records = vbs_unpack(vbs_record)
         print "Length of output =", len(records)
         print records
 
     def test_line_to_vbs(self):
         linebreakdata = ['1234567890', '1234567890']
-        vbsdata = _line_to_vbs(linebreakdata)
+        vbsdata = vbs_pack(linebreakdata)
         hexdump.hexdump(vbsdata)
         self.assertEquals("\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
                           "7890\x00\x00\x00\x00",
@@ -143,11 +147,6 @@ class TestGetMessageElements(TestCase):
         print len(input)
         print input
 
-    def test_filtered_dictionary(self):
-        field_list = ["field1", "field3"]
-        dictionary = {"field1": "Hello",
-                      "field2": "Hello again",
-                      "field3": "Goodbye"}
-
-        filtered_dictionary = filter_dictionary(dictionary, field_list)
-        print filtered_dictionary
+    def test_mask_pan(self):
+        card_number = "1234567890123456"
+        self.assertEquals(_mask_pan(card_number), "123456*******456")
