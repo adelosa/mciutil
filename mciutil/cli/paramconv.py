@@ -8,8 +8,9 @@ Command line interface functions
 import argparse
 import hexdump
 
-from mciutil.mciutil import block, unblock, _convert_text_eb2asc, \
-    _convert_text_asc2eb
+from ..mciutil import (
+    block, unblock, _convert_text_eb2asc, _convert_text_asc2eb
+)
 
 
 def main():

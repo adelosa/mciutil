@@ -31,7 +31,7 @@ setup(
     author_email='adelosa@gmail.com',
     url='https://github.com/adelosa/mciutil',
     packages=[
-        'mciutil'
+        'mciutil', 'mciutil.cli'
     ],
     package_dir={'mciutil':
                  'mciutil'},
@@ -39,7 +39,7 @@ setup(
     install_requires=requirements,
     entry_points={
     	'console_scripts': [
-            'mideu = mciutil.cli.mideu:main',
+            'mideu = mciutil.cli.mideu:cli_entry',
             'paramconv = mciutil.cli.paramconv:main',
         ]
     },

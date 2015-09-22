@@ -1,10 +1,10 @@
 # Specify mongodb connection details
-mongodb:
+mongo_config:
   host: 192.168.99.100:27017
   db: test
 
 # Provides specifications for ISO8583 fields
-data_elements:
+bit_config:
   1:
     field_name: Bitmap secondary
     field_type: FIXED
@@ -104,7 +104,7 @@ data_elements:
 
 # default output elements for mideu utility if not provided
 
-default_output_elements:
+output_data_elements:
   - MTI
   - DE2
   - DE3

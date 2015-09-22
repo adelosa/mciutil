@@ -1,9 +1,12 @@
 from unittest import TestCase
 import hexdump
 
-from mciutil.mciutil import vbs_unpack, vbs_pack, _convert_text_asc2eb, \
-    get_message_elements, unblock, block, _get_de43_elements, \
-    _mask_pan
+# Public import
+import mciutil
+# Private functions
+from mciutil.mciutil import (
+    _convert_text_asc2eb, _get_de43_elements, _mask_pan,
+)
 
 CONFIG = {
     'data_elements':
@@ -76,7 +79,7 @@ class TestGetMessageElements(TestCase):
                       "Y\\4103  QLDAUS0080001001Y99901600000000000000011234" \
                       "567806999999"
 
-        message_elements = get_message_elements(
+        message_elements = mciutil.get_message_elements(
             message_raw, CONFIG['data_elements'], 'ascii')
 
         print message_elements
@@ -96,7 +99,7 @@ class TestGetMessageElements(TestCase):
                                  " BOBS\\70 FERNDALE ST\\ANNERLEY\\4103  QLD"
                                  "AUS0080001001Y9990160000000000000001123456"
                                  "7806999999")
-        message_elements = get_message_elements(
+        message_elements = mciutil.get_message_elements(
             message_raw, CONFIG['data_elements'], 'ebcdic')
 
         # print message_elements
@@ -117,13 +120,13 @@ class TestGetMessageElements(TestCase):
 
     def test_vbs_to_line(self):
         vbs_record = "\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A1234567890"
-        records = vbs_unpack(vbs_record)
+        records = mciutil.vbs_unpack(vbs_record)
         print "Length of output =", len(records)
         print records
 
     def test_line_to_vbs(self):
         linebreakdata = ['1234567890', '1234567890']
-        vbsdata = vbs_pack(linebreakdata)
+        vbsdata = mciutil.vbs_pack(linebreakdata)
         hexdump.hexdump(vbsdata)
         self.assertEquals("\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
                           "7890\x00\x00\x00\x00",
@@ -132,7 +135,7 @@ class TestGetMessageElements(TestCase):
     def test_unblock(self):
         umodedata = ("\x00\x00\x00\x0A1234567890" * 72) + "\x00\x00\x00\x0A" \
                                                           "\x40\x401234567890"
-        records = unblock(umodedata)
+        records = mciutil.unblock(umodedata)
         print len(records)
         print records[0]
         print records[72]
@@ -141,9 +144,9 @@ class TestGetMessageElements(TestCase):
         linebreakdata = []
         for x in range(0, 73):
             linebreakdata.append("1234567890")
-        output = block(linebreakdata)
+        output = mciutil.block(linebreakdata)
         hexdump.hexdump(output)
-        input = unblock(output)
+        input = mciutil.unblock(output)
         print len(input)
         print input
 

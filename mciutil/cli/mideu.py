@@ -2,60 +2,57 @@
 """
 mideu
 -----
-
-Command line interface functions
+Utility for processing MasterCard IPM files
 """
 import os.path
+import logging
+
 import argparse
 import csv
 import yaml
 import hexdump
 import pymongo
-import logging
 
-from mciutil.mciutil import unblock, get_message_elements
+from mciutil import unblock, get_message_elements
 
 LOGGER = logging.getLogger(__name__)
 
 
-def main():
+def cli_entry():
+    args = _get_cli_parser().parse_args()
+    main(args)
+
+
+def main(args):
     """
     main cli runner
-
+    :param args: arg object
     :return: exit code
     """
-
-    # load command line arguments
-    parser = _cli_parse()
-    args = parser.parse_args()
-    input_filename = args.input
-    csv_output_filename = input_filename + ".out"
-    source_format = args.sourceformat
 
     logging.basicConfig(
         level=args.loglevel,
         format='%(asctime)s:%(name)s:%(lineno)s:%(levelname)s:%(message)s'
     )
 
+    # set config filename
+    config_filename = os.path.dirname(
+        os.path.abspath(__file__)) + "/mideu.yaml"
+    print config_filename
+
     # load the default config from YAML
-    os.path.isfile(__file__ + ".yaml")
-    with open(__file__ + ".yaml", 'r') as config_file:
+    os.path.isfile(config_filename)
+    with open(config_filename, 'r') as config_file:
         config = yaml.load(config_file)
 
-    # set config dictionaries
-    bit_config = config['data_elements']
-    output_elements = config['default_output_elements']
-    mongo_config = config['mongodb']
+    # exit if input file does not exist
+    if not os.path.isfile(args.input):
+        print "File not found {}".format(args.input)
+        exit(8)
 
-    # override with mongo command line parameters if provided
-    if args.mongohost:
-        mongo_config["host"] = args.mongohost
-    if args.mongodb:
-        mongo_config["db"] = args.mongodb
-
-    # Read input file : 1014 Block format
-    input_file = file(input_filename, 'rb').read()
-    LOGGER.info("%s bytes read from %s", len(input_file), input_filename)
+    # Read input file
+    input_file = file(args.input, 'rb').read()
+    LOGGER.info("%s bytes read from %s", len(input_file), args.input)
 
     # Unblock input
     input_file = unblock(input_file)
@@ -66,12 +63,16 @@ def main():
     # parse the records
     for record_count, record in enumerate(input_file, 1):
 
-        # Print data out in Debug mode
+        # Print data out in debug mode
         LOGGER.debug(record_count)
         LOGGER.debug(hexdump.hexdump(record, result="return"))
 
         # get message elements from the raw message data
-        record_values = get_message_elements(record, bit_config, source_format)
+        record_values = get_message_elements(
+            record,
+            config['bit_config'],
+            args.sourceformat
+        )
 
         # add the row to the output array
         output_list.append(record_values)
@@ -80,15 +81,30 @@ def main():
 
     # write to output
     if args.mongo:
-        add_to_mongo(output_list, output_elements, mongo_config)
-    if csv_output_filename and not args.mongo:
-        add_to_csv(output_list, output_elements, csv_output_filename)
+        mongo_config = config["mongo_config"]
+        if args.mongohost:
+            mongo_config["host"] = args.mongohost
+        if args.mongodb:
+            mongo_config["db"] = args.mongodb
+
+        add_to_mongo(
+            output_list,
+            config['output_data_elements'],
+            mongo_config)
+
+    else:  # default write to csv
+        csv_output_filename = args.input + ".out"
+        add_to_csv(
+            output_list,
+            config['output_data_elements'],
+            csv_output_filename
+        )
 
     print "Done!"
     exit(0)
 
 
-def _cli_parse():
+def _get_cli_parser():
     """
     Setup the command line parsing using argparse
     :return: parser
@@ -183,4 +199,5 @@ def _filter_dictionary(dictionary, field_list):
 
 
 if __name__ == "__main__":
-    main()
+    main_args = _get_cli_parser().parse_args()
+    main(main_args)
