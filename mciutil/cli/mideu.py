@@ -38,7 +38,7 @@ def main(args):
     # set config filename
     config_filename = os.path.dirname(
         os.path.abspath(__file__)) + "/mideu.yaml"
-    print config_filename
+    LOGGER.info("Config file: %s", config_filename)
 
     # load the default config from YAML
     os.path.isfile(config_filename)
@@ -101,7 +101,6 @@ def main(args):
         )
 
     print "Done!"
-    exit(0)
 
 
 def _get_cli_parser():
