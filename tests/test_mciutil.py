@@ -91,8 +91,9 @@ class TestGetMessageElements(TestCase):
         self.assertEquals(message_elements["PDS0001"], "Y")
 
     def test_get_message_elements_ebcdic(self):
-        message_raw = "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04" \
-                      "\x00\x00\x00\x00" + \
+        message_raw = _convert_text_asc2eb("1144") + \
+            "\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04" + \
+            "\x00\x00\x00\x00" + \
             _convert_text_asc2eb("164444555544445555111111000000009999201508"
                                  "151715123456789012333123423579957991200000"
                                  "012306120612345612345657994211111111145BIG"
