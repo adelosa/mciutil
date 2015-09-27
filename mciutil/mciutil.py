@@ -3,10 +3,11 @@ Contains functions to work with MasterCard formatted files
 """
 
 import logging
-import codecs
+import sys
 import struct
 import datetime
 import decimal
+import codecs
 
 import bitarray
 
@@ -22,13 +23,13 @@ def unblock(blocked_data):
     """
 
     file_pointer = 0
-    unblock_data = ""
+    unblock_data = []
 
     while file_pointer <= len(blocked_data):
-        unblock_data += blocked_data[file_pointer:file_pointer+1012]
+        unblock_data.append(blocked_data[file_pointer:file_pointer+1012])
         file_pointer += 1014
 
-    return vbs_unpack(unblock_data)
+    return vbs_unpack(b("").join(unblock_data))
 
 
 def vbs_unpack(vbs_data):
@@ -82,21 +83,22 @@ def block(unblocked_data):
 
     unblocked_data = vbs_pack(unblocked_data)
 
-    pad_char = "\x40"
-    blocked_data = ""
+    pad_char = b("\x40")
+    blocked_data = []
     block_count = 0
 
     while block_count <= len(unblocked_data):
-        blocked_data += unblocked_data[block_count:block_count+1012]
-        blocked_data += pad_char*2
+        blocked_data.append(unblocked_data[block_count:block_count+1012])
+        blocked_data.append(pad_char*2)
         block_count += 1012
 
     # add the pad characters
     pad_count = block_count - len(unblocked_data)
-    print pad_count, "pad characters added"
-    blocked_data += pad_char * pad_count
+    print(str(pad_count) + " pad characters added")
+    blocked_data.append(pad_char * pad_count)
 
-    return blocked_data
+    # return blocked_data
+    return b("").join(blocked_data)
 
 
 def vbs_pack(records):
@@ -108,7 +110,7 @@ def vbs_pack(records):
         records in a single string
     """
 
-    vbs_data = ""
+    vbs_data = []
 
     for record in records:
         # get the length of the record
@@ -116,14 +118,14 @@ def vbs_pack(records):
         # convert length to binary
         record_length_raw = struct.pack(">i", record_length)
         # add length to output data
-        vbs_data += record_length_raw
+        vbs_data.append(record_length_raw)
         # add data to output
-        vbs_data += record
+        vbs_data.append(record)
 
     # add zero length to end of record
-    vbs_data += struct.pack(">i", 0)
+    vbs_data.append(struct.pack(">i", 0))
 
-    return vbs_data
+    return b("").join(vbs_data)
 
 
 def get_message_elements(message, bit_config, source_format):
@@ -263,7 +265,7 @@ def _mask_pan(field_data):
     """
     # if field is PAN type, mask the card value
     return field_data[:6] \
-        + ("*" * (len(field_data)-9)) \
+        + (b("*") * (len(field_data)-9)) \
         + field_data[len(field_data)-3:len(field_data)]
 
 
@@ -282,7 +284,7 @@ def _convert_to_type(field_data, bit_config):
     if field_python_type == "decimal":
         field_data = decimal.Decimal(field_data)
     if field_python_type == "long":
-        field_data = long(field_data)
+        field_data = int(field_data)
     if field_python_type == "datetime":
         field_data = datetime.datetime.strptime(
             field_data, "%y%m%d%H%M%S")
@@ -343,19 +345,17 @@ def _get_pds_fields(field_data):
     while field_pointer < len(field_data):
         # get the pds tag id
         pds_field_tag = field_data[field_pointer:field_pointer+4]
-        LOGGER.debug("pds_field_tag=[" + pds_field_tag + "]")
+        LOGGER.debug("pds_field_tag=[%s]", pds_field_tag)
 
         # get the pds length
         pds_field_length = int(field_data[field_pointer+4:field_pointer+7])
-        LOGGER.debug("pds_field_length=[" + str(pds_field_length) + "]")
+        LOGGER.debug("pds_field_length=[%i]", pds_field_length)
 
         # get the pds data
         pds_field_data = \
             field_data[field_pointer+7:field_pointer+7+pds_field_length]
-        LOGGER.debug("pds_field_data=[" + str(pds_field_data) + "]")
-
-        return_values["PDS" + pds_field_tag] = pds_field_data
-
+        LOGGER.debug("pds_field_data=[%s]", str(pds_field_data))
+        return_values["PDS" + pds_field_tag.decode()] = pds_field_data
         # increment the fieldPointer
         field_pointer += 7+pds_field_length
 
@@ -368,7 +368,7 @@ def _get_de43_elements(de43_field):
     """
 
     de43_elements = {}
-    de43_split = de43_field.split('\\')
+    de43_split = de43_field.split(b('\\'))
     de43_elements["DE43_NAME"] = de43_split[0].rstrip()
     de43_elements["DE43_ADDRESS"] = de43_split[1].rstrip()
     de43_elements["DE43_SUBURB"] = de43_split[2].rstrip()
@@ -378,3 +378,13 @@ def _get_de43_elements(de43_field):
     de43_elements["DE43_COUNTRY"] = \
         de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
     return de43_elements
+
+
+if sys.version_info < (3,):
+    def b(x):
+        return x
+else:
+    # import codecs
+
+    def b(x):
+        return codecs.latin_1_encode(x)[0]
