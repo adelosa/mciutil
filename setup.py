@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='mciutil',
-    version='0.1.0',
+    version='0.2.0',
     description='MasterCard file utilities',
     long_description=readme + '\n\n' + history,
     author='Anthony Delosa',
@@ -52,12 +52,11 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
-
+        'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
     tests_require=test_requirements

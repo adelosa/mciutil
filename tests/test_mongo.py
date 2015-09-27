@@ -31,8 +31,8 @@ def insert(db):
         }
     )
 
-    print result
-    print result.inserted_id
+    print(result)
+    print(result.inserted_id)
 
 
 def find_data(db):
@@ -45,17 +45,21 @@ def find_data(db):
     for document in cursor:
         print(document)
 
-    print db.restaurants.count({"grades.score": {"$gt": 60},
-                                "cuisine": "Italian"})
+    print(
+        db.restaurants.count({"grades.score": {"$gt": 60},
+                              "cuisine": "Italian"})
+    )
 
 
 def format_string():
     item_count = 100000
     total_items = 200000
-    print "processed {percent_complete}%".format(
-        percent_complete=(
-            round(
-                item_count / float(total_items) * 100, 0
+    print(
+        "processed {percent_complete}%".format(
+            percent_complete=(
+                round(
+                    item_count / float(total_items) * 100, 0
+                )
             )
         )
     )
@@ -63,11 +67,11 @@ def format_string():
 
 def mci_single_query(db):
     # print number of records
-    print db.mastercardtransactions.count({"DE43_POSTCODE": "4103"})
+    print(db.mastercardtransactions.count({"DE43_POSTCODE": "4103"}))
 
     cursor = db.mastercardtransactions.find({"DE43_POSTCODE": "4103"})
     for doc in cursor:
-        print doc
+        print(doc)
 
 
 def mci_breakdown_by_mcc_by_ird(db):
@@ -99,7 +103,7 @@ def mci_breakdown_by_mcc_by_ird(db):
         ]
     )
     for doc in cursor:
-        print doc
+        print(doc)
 
 
 def mci_queries(db):
@@ -133,7 +137,7 @@ def mci_queries(db):
         ]
     )
     for doc in cursor:
-        print doc
+        print(doc)
 
 
 if __name__ == '__main__':

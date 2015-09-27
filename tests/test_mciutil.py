@@ -5,7 +5,7 @@ import hexdump
 import mciutil
 # Private functions
 from mciutil.mciutil import (
-    _convert_text_asc2eb, _get_de43_elements, _mask_pan,
+    _convert_text_asc2eb, _get_de43_elements, _mask_pan, b
 )
 
 CONFIG = {
@@ -71,86 +71,90 @@ CONFIG = {
 class TestGetMessageElements(TestCase):
 
     def test_get_message_elements_ascii(self):
-        message_raw = "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04" \
-                      "\x00\x00\x00\x00" + \
-                      "1644445555444455551111110000000099992015081517151234" \
-                      "5678901233312342357995799120000001230612061234561234" \
-                      "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE" \
-                      "Y\\4103  QLDAUS0080001001Y99901600000000000000011234" \
-                      "567806999999"
+        message_raw = b(
+                      "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
+                      "\x00\x00\x00\x00" +
+                      "1644445555444455551111110000000099992015081517151234"
+                      "5678901233312342357995799120000001230612061234561234"
+                      "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE"
+                      "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
+                      "567806999999")
 
         message_elements = mciutil.get_message_elements(
             message_raw, CONFIG['data_elements'], 'ascii')
 
-        print message_elements
+        print(message_elements)
 
         # print message_elements
-        self.assertEquals(message_elements["DE2"], "444455*******555")
-        self.assertEquals(message_elements["DE3"], "111111")
-        self.assertEquals(message_elements["DE4"], "000000009999")
-        self.assertEquals(message_elements["PDS0001"], "Y")
+        self.assertEqual(message_elements["DE2"], b"444455*******555")
+        self.assertEqual(message_elements["DE3"], b"111111")
+        self.assertEqual(message_elements["DE4"], b"000000009999")
+        self.assertEqual(message_elements["PDS0001"], b"Y")
 
     def test_get_message_elements_ebcdic(self):
-        message_raw = _convert_text_asc2eb("1144") + \
-            "\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04" + \
-            "\x00\x00\x00\x00" + \
-            _convert_text_asc2eb("164444555544445555111111000000009999201508"
-                                 "151715123456789012333123423579957991200000"
-                                 "012306120612345612345657994211111111145BIG"
-                                 " BOBS\\70 FERNDALE ST\\ANNERLEY\\4103  QLD"
-                                 "AUS0080001001Y9990160000000000000001123456"
-                                 "7806999999")
+        message_raw = (
+            _convert_text_asc2eb(b("1144")) +
+            b("\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04") +
+            b("\x00\x00\x00\x00") +
+            _convert_text_asc2eb(b("164444555544445555111111000000009999201508"
+                                   "151715123456789012333123423579957991200000"
+                                   "012306120612345612345657994211111111145BIG"
+                                   " BOBS\\70 FERNDALE ST\\ANNERLEY\\4103  QLD"
+                                   "AUS0080001001Y9990160000000000000001123456"
+                                   "7806999999"))
+        )
         message_elements = mciutil.get_message_elements(
             message_raw, CONFIG['data_elements'], 'ebcdic')
 
         # print message_elements
-        self.assertEquals(message_elements["DE2"], "444455*******555")
-        self.assertEquals(message_elements["DE3"], "111111")
-        self.assertEquals(message_elements["DE4"], "000000009999")
+        self.assertEqual(message_elements["DE2"], b"444455*******555")
+        self.assertEqual(message_elements["DE3"], b"111111")
+        self.assertEqual(message_elements["DE4"], b"000000009999")
 
     def test_get_de43_elements(self):
-        de43_raw = "AAMI                  \\36 WICKHAM TERRACE             " \
-                   "              \\BRISBANE     \\4000      QLDAUS"
+        de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
+                     "              \\BRISBANE     \\4000      QLDAUS")
         de43_elements = _get_de43_elements(de43_raw)
-        self.assertEquals("AAMI", de43_elements["DE43_NAME"])
-        self.assertEquals("36 WICKHAM TERRACE", de43_elements["DE43_ADDRESS"])
-        self.assertEquals("BRISBANE", de43_elements["DE43_SUBURB"])
-        self.assertEquals("4000", de43_elements["DE43_POSTCODE"])
-        self.assertEquals("QLD", de43_elements["DE43_STATE"])
-        self.assertEquals("AUS", de43_elements["DE43_COUNTRY"])
+        self.assertEquals(de43_elements["DE43_NAME"], b"AAMI")
+        self.assertEquals(de43_elements["DE43_ADDRESS"], b"36 WICKHAM TERRACE")
+        self.assertEquals(de43_elements["DE43_SUBURB"], b"BRISBANE")
+        self.assertEquals(de43_elements["DE43_POSTCODE"], b"4000")
+        self.assertEquals(de43_elements["DE43_STATE"], b"QLD")
+        self.assertEquals(de43_elements["DE43_COUNTRY"], b"AUS")
 
     def test_vbs_to_line(self):
-        vbs_record = "\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A1234567890"
+        vbs_record = b("\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A1234567890")
         records = mciutil.vbs_unpack(vbs_record)
-        print "Length of output =", len(records)
-        print records
+        print("Length of output =", len(records))
+        print(records)
 
     def test_line_to_vbs(self):
-        linebreakdata = ['1234567890', '1234567890']
+        linebreakdata = [b('1234567890'), b('1234567890')]
         vbsdata = mciutil.vbs_pack(linebreakdata)
         hexdump.hexdump(vbsdata)
-        self.assertEquals("\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
-                          "7890\x00\x00\x00\x00",
-                          vbsdata)
+        self.assertEquals(vbsdata,
+                          b"\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
+                          b"7890\x00\x00\x00\x00",
+                          )
 
     def test_unblock(self):
-        umodedata = ("\x00\x00\x00\x0A1234567890" * 72) + "\x00\x00\x00\x0A" \
-                                                          "\x40\x401234567890"
+        umodedata = ((b("\x00\x00\x00\x0A1234567890") * 72) +
+                     b("\x00\x00\x00\x0A\x40\x401234567890"))
         records = mciutil.unblock(umodedata)
-        print len(records)
-        print records[0]
-        print records[72]
+        print(len(records))
+        print(records[0])
+        print(records[72])
 
     def test_block(self):
         linebreakdata = []
         for x in range(0, 73):
-            linebreakdata.append("1234567890")
+            linebreakdata.append(b("1234567890"))
         output = mciutil.block(linebreakdata)
         hexdump.hexdump(output)
         input = mciutil.unblock(output)
-        print len(input)
-        print input
+        print(len(input))
+        print(input)
 
     def test_mask_pan(self):
-        card_number = "1234567890123456"
-        self.assertEquals(_mask_pan(card_number), "123456*******456")
+        card_number = b("1234567890123456")
+        self.assertEquals(_mask_pan(card_number), b"123456*******456")
