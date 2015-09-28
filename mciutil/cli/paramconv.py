@@ -45,7 +45,7 @@ def main():
 
     # read file to string
     input_file = file(input_filename, 'rb').read()
-    print "%s bytes read from %s" % (len(input_file), input_filename)
+    print("%s bytes read from %s".format(len(input_file), input_filename))
 
     # deblock the file
     input_file = unblock(input_file)
@@ -72,22 +72,22 @@ def main():
     with open(output_filename, "wb") as output_csv:
         output_csv.write(output_file)
 
-    print "%s bytes written to %s" % (len(output_file), output_filename)
-    print "%s records" % record_count
+    print("%s bytes written to %s".format(len(output_file), output_filename))
+    print("%s records".format(record_count))
 
     if debug:
-        print "DEBUG:Input first 5000 bytes"
+        print("DEBUG:Input first 5000 bytes")
         hexdump.hexdump(input_file[:5000])
-        print "DEBUG:Output first 5000 bytes"
+        print("DEBUG:Output first 5000 bytes")
         hexdump.hexdump(output_file[:5000])
 
-        print "DEBUG:Input last 5000 bytes"
+        print("DEBUG:Input last 5000 bytes")
         hexdump.hexdump(input_file[len(output_file)-5000:len(input_file)])
-        print "DEBUG:Output last 5000 bytes"
+        print("DEBUG:Output last 5000 bytes")
         hexdump.hexdump(output_file[len(output_file)-5000:len(output_file)])
 
-    print "Done!"
-    exit(0)
+    print("Done!")
+
 
 if __name__ == "__main__":
     main()

@@ -20,4 +20,4 @@ Features
 Provides the following command line utilities:
 
 * paramconv: Convert 1014 blocked MasterCard MPE Parameter extract files between EBCDIC and ASCII
-* mideu: Read and extract 1014 blocked MasterCard IPM files
+* mideu: Read and extract 1014 blocked MasterCard IPM files to CSV or a Mongo collection
