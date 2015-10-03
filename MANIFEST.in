@@ -11,4 +11,4 @@ recursive-exclude * *.py[co]
 recursive-include docs *.rst conf.py Makefile make.bat
 
 # package specific instructions
-include mciutil/cli/mideu.yaml
+include mciutil/cli/mideu.yml

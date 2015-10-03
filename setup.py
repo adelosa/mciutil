@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='mciutil',
-    version='0.2.0',
+    version='0.3.0',
     description='MasterCard file utilities',
     long_description=readme + '\n\n' + history,
     author='Anthony Delosa',

@@ -44,10 +44,10 @@ def main():
     debug = args.debug
 
     # read file to string
-    input_file = file(input_filename, 'rb').read()
+    input_file = open(input_filename, 'rb').read()
     print("%s bytes read from %s".format(len(input_file), input_filename))
 
-    # deblock the file
+    # deblock the fil   e
     input_file = unblock(input_file)
 
     # convert the file from source to target encoding
@@ -66,25 +66,25 @@ def main():
         output_list.append(record)
 
     # re-block the data
-    output_file = block(output_list)
+    output_data = block(output_list)
 
     # save to file
-    with open(output_filename, "wb") as output_csv:
-        output_csv.write(output_file)
+    with open(output_filename, "wb") as output_file:
+        output_file.write(output_data)
 
-    print("%s bytes written to %s".format(len(output_file), output_filename))
+    print("%s bytes written to %s".format(len(output_data), output_filename))
     print("%s records".format(record_count))
 
     if debug:
         print("DEBUG:Input first 5000 bytes")
         hexdump.hexdump(input_file[:5000])
         print("DEBUG:Output first 5000 bytes")
-        hexdump.hexdump(output_file[:5000])
+        hexdump.hexdump(output_data[:5000])
 
         print("DEBUG:Input last 5000 bytes")
-        hexdump.hexdump(input_file[len(output_file)-5000:len(input_file)])
+        hexdump.hexdump(input_file[len(output_data)-5000:len(input_file)])
         print("DEBUG:Output last 5000 bytes")
-        hexdump.hexdump(output_file[len(output_file)-5000:len(output_file)])
+        hexdump.hexdump(output_data[len(output_data)-5000:len(output_data)])
 
     print("Done!")
 

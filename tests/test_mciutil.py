@@ -5,7 +5,7 @@ import hexdump
 import mciutil
 # Private functions
 from mciutil.mciutil import (
-    _convert_text_asc2eb, _get_de43_elements, _mask_pan, b
+    _convert_text_asc2eb, _get_de43_fields, _mask_pan, b, flip_message_encoding
 )
 
 CONFIG = {
@@ -114,7 +114,7 @@ class TestGetMessageElements(TestCase):
     def test_get_de43_elements(self):
         de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
                      "              \\BRISBANE     \\4000      QLDAUS")
-        de43_elements = _get_de43_elements(de43_raw)
+        de43_elements = _get_de43_fields(de43_raw)
         self.assertEquals(de43_elements["DE43_NAME"], b"AAMI")
         self.assertEquals(de43_elements["DE43_ADDRESS"], b"36 WICKHAM TERRACE")
         self.assertEquals(de43_elements["DE43_SUBURB"], b"BRISBANE")
@@ -158,3 +158,24 @@ class TestGetMessageElements(TestCase):
     def test_mask_pan(self):
         card_number = b("1234567890123456")
         self.assertEquals(_mask_pan(card_number), b"123456*******456")
+
+    def test_flip_message_elements_ascii(self):
+        message_raw = b(
+                      "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
+                      "\x00\x00\x00\x00" +
+                      "1644445555444455551111110000000099992015081517151234"
+                      "5678901233312342357995799120000001230612061234561234"
+                      "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE"
+                      "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
+                      "567806999999")
+
+        message_elements = mciutil.flip_message_encoding(
+            message_raw, CONFIG['data_elements'], 'ascii')
+        print("************* E B C D I C ******************")
+        hexdump.hexdump(message_elements)
+        message_elements = mciutil.flip_message_encoding(
+            message_elements, CONFIG['data_elements'], 'ebcdic')
+        print("************* A S C I I ********************")
+        hexdump.hexdump(message_elements)
+        print("********************************************")
+        self.assertEqual(message_raw, message_elements)

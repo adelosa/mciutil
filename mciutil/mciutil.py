@@ -128,6 +128,80 @@ def vbs_pack(records):
     return b("").join(vbs_data)
 
 
+def flip_message_encoding(message, bit_config, source_format):
+    """
+    flip the encoding of an ISO8583 style message
+    :param message:
+    :param source_format:
+    :return: message encoded
+    """
+    message_length = len(message)-20
+    (message_type_indicator, binary_bitmap, message_data) \
+        = struct.unpack("4s16s" + str(message_length) + "s", message)
+
+    flipped_message = b("")
+
+    # add the message type
+    if source_format == 'ebcdic':
+        flipped_message += _convert_text_eb2asc(message_type_indicator)
+    else:
+        flipped_message += _convert_text_asc2eb(message_type_indicator)
+
+    message_pointer = 0
+    bitmap_list = _get_bitmap_list(binary_bitmap)
+
+    # add back the bitmap - no encoding
+    flipped_message += binary_bitmap
+
+    for bit in range(2, 128):
+        if bitmap_list[bit]:
+            return_message, message_increment = \
+                _flip_element_encoding(bit_config[bit],
+                                       message_data[message_pointer:],
+                                       source_format)
+
+            # Increment the message pointer and process next field
+            message_pointer += message_increment
+            flipped_message += return_message
+
+    return flipped_message
+
+
+def _flip_element_encoding(bit_config, message_data, source_format):
+
+    flipped_element = b("")
+
+    field_length = bit_config['field_length']
+
+    length_size = _get_field_length(bit_config)
+
+    if length_size > 0:
+        field_length_string = \
+            message_data[:length_size]
+        if source_format == 'ebcdic':
+            field_length_string = _convert_text_eb2asc(field_length_string)
+            field_length = int(field_length_string)
+        else:
+            field_length = int(field_length_string)
+            field_length_string = _convert_text_asc2eb(field_length_string)
+
+        flipped_element += field_length_string
+
+    field_data = \
+        message_data[length_size:length_size+field_length]
+
+    field_processor = _set_parameter(bit_config,
+                                     'field_processor')
+    # flip except for ICC field
+    if field_processor != 'ICC':
+        if source_format == 'ebcdic':
+            flipped_element += _convert_text_eb2asc(field_data)
+        else:
+            flipped_element += _convert_text_asc2eb(field_data)
+
+    return flipped_element, field_length + length_size
+
+
 def get_message_elements(message, bit_config, source_format):
     """
     Convert ISO8583 style message to dictionary
@@ -169,12 +243,11 @@ def get_message_elements(message, bit_config, source_format):
         if bitmap_list[bit]:
             return_message, message_increment = \
                 _process_element(bit,
-                                 bit_config,
+                                 bit_config[bit],
                                  message_data[message_pointer:],
                                  source_format)
 
             # Increment the message pointer and process next field
-            # message_pointer += field_length
             message_pointer += message_increment
             return_values.update(return_message)
 
@@ -193,12 +266,10 @@ def _process_element(bit, bit_config, message_data, source_format):
         dictionary: field values
         message incrementer: position of next message
     """
-    length_size = 0
-    field_length = bit_config[bit]['field_length']
-    if bit_config[bit]['field_type'] == "LLVAR":
-        length_size = 2
-    elif bit_config[bit]['field_type'] == "LLLVAR":
-        length_size = 3
+
+    field_length = bit_config['field_length']
+
+    length_size = _get_field_length(bit_config)
 
     if length_size > 0:
         field_length_string = \
@@ -211,7 +282,7 @@ def _process_element(bit, bit_config, message_data, source_format):
     field_data = \
         message_data[length_size:length_size+field_length]
 
-    field_processor = _set_parameter(bit_config[bit],
+    field_processor = _set_parameter(bit_config,
                                      'field_processor')
 
     # do ascii conversion except for ICC field
@@ -224,7 +295,7 @@ def _process_element(bit, bit_config, message_data, source_format):
         field_data = _mask_pan(field_data)
 
     # do field conversion to native python type
-    field_data = _convert_to_type(field_data, bit_config[bit])
+    field_data = _convert_to_type(field_data, bit_config)
 
     return_values = dict()
 
@@ -237,7 +308,7 @@ def _process_element(bit, bit_config, message_data, source_format):
 
     # if a DE43 field, break in down again and add to results
     if field_processor == 'DE43':
-        return_values.update(_get_de43_elements(field_data))
+        return_values.update(_get_de43_fields(field_data))
 
     return return_values, field_length + length_size
 
@@ -289,6 +360,17 @@ def _convert_to_type(field_data, bit_config):
         field_data = datetime.datetime.strptime(
             field_data, "%y%m%d%H%M%S")
     return field_data
+
+
+def _get_field_length(bit_config):
+    length_size = 0
+
+    if bit_config['field_type'] == "LLVAR":
+        length_size = 2
+    elif bit_config['field_type'] == "LLLVAR":
+        length_size = 3
+
+    return length_size
 
 
 def _convert_text_eb2asc(value_to_convert):
@@ -362,7 +444,7 @@ def _get_pds_fields(field_data):
     return return_values
 
 
-def _get_de43_elements(de43_field):
+def _get_de43_fields(de43_field):
     """
     Field processor for field 43 (Merchant name and address)
     """
