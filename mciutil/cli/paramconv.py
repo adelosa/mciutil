@@ -45,7 +45,7 @@ def main():
 
     # read file to string
     input_file = open(input_filename, 'rb').read()
-    print("%s bytes read from %s".format(len(input_file), input_filename))
+    print("{} bytes read from {}".format(len(input_file), input_filename))
 
     # deblock the fil   e
     input_file = unblock(input_file)
@@ -72,8 +72,8 @@ def main():
     with open(output_filename, "wb") as output_file:
         output_file.write(output_data)
 
-    print("%s bytes written to %s".format(len(output_data), output_filename))
-    print("%s records".format(record_count))
+    print("{} bytes written to {}".format(len(output_data), output_filename))
+    print("{} records".format(record_count))
 
     if debug:
         print("DEBUG:Input first 5000 bytes")
