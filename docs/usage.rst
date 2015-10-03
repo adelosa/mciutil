@@ -28,7 +28,7 @@ This runs with the following assumptions
 If you have a ASCII file and want to convert it to EBCDIC, you need to provide
 the source format type::
 
-    paramconv -s ebcdic <inputfile>
+    paramconv -s ascii <inputfile>
 
 You can change the output file location::
 
@@ -38,15 +38,24 @@ To get all the usage details::
 
     paramconv --help
 
-mideu - Extract transaction data from IPM files
------------------------------------------------
-Use this tool to extract transactions into usable formats from a MasterCard
-IPM format file. The app currently works exclusively with 1014 blocked file
-format which is used for communications between MasterCard and the member.
+mideu - MasterCard IPM file tool
+--------------------------------
+This utility is for working with MasterCard IPM clearing files.
+Currently the utility provides the following functions::
+
+* extract - provide IPM transaction data in usable format
+* convert - convert IPM files between ASCII and EBCDIC encoding
+
+Extract command
+^^^^^^^^^^^^^^^
+Use this tool to extract transactions from a MasterCard
+IPM format file into usable formats. The app currently works exclusively with
+1014 blocked file format which is used for communications between MasterCard
+and the member.
 
 Get a csv file from an IPM file::
 
-    mideu <filename>
+    mideu extract <filename>
 
 This runs with the following assumptions
 
@@ -55,15 +64,15 @@ This runs with the following assumptions
 
 If you need to process an ASCII file::
 
-    mideu -s ascii <filename>
+    mideu extract -s ascii <filename>
 
 You can change the output file location for the CSV file::
 
-    mideu <inputfile> --csvoutputfile <outputfile>
+    mideu extract <inputfile> --csvoutputfile <outputfile>
 
 You can also load the transactions into a MongoDB collection::
 
-    mideu <inputfile> --mongohost localhost --mongodb testdb
+    mideu extract <inputfile> --mongohost localhost --mongodb testdb
 
 The transactions will be added to a collection called ``mastercardtransactions``
 Currently the existing collection is deleted prior to the load.
@@ -72,16 +81,35 @@ future. Feel free to suggest changes.
 
 To get all the usage details::
 
-    mideu --help
+    mideu extract --help
 
+Convert command
+^^^^^^^^^^^^^^^
+Most simple usage, just provide a MasterCard IPM file to convert::
 
-mideu.yaml configuration
-^^^^^^^^^^^^^^^^^^^^^^^^
+    mideu convert <inputfile>
+
+This runs with the following assumptions
+
+* Input file format is EBCDIC
+* Output file is the input file plus a '.out' extension
+
+If you have a ASCII file and want to convert it to EBCDIC, you need to provide
+the source format type::
+
+    mideu convert -s ascii <inputfile>
+
+To get all the usage details::
+
+    mideu convert --help
+
+mideu.yml configuration
+^^^^^^^^^^^^^^^^^^^^^^^
 The package provides a common configuration, but you can provide your own if
 you wish to change it. You have 2 options for providing your own configuration.
 
-* mideu.yaml file in the current directory
-* .mideu.yaml file in the users home directory
+* mideu.yml file in the current directory
+* .mideu.yml file in the users home directory
 
 The file is a basic yaml file with the following sections
 
@@ -130,4 +158,3 @@ To use Mastercard file utilities in a project::
 
 There are some useful functions for working with bitmap, variable length files.
 Will document in a future version.
-

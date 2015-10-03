@@ -3,6 +3,12 @@
 History
 -------
 
+0.3.0 (2015-10-03)
+------------------
+* added subcommands for mideu
+* mideu now supports IPM encoding conversion between ascii and ebcdic
+* Now faster using list comps instead of slow loops
+
 0.2.0 (2015-08-28)
 ------------------
 * Support for config override for mideu - see usage doco
