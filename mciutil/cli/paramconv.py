@@ -3,9 +3,12 @@
 paramconv
 ---------
 
-Command line interface functions
+Convert MasterCard Parameter Extract files between ASCII and EBCDIC encoding
 """
+import os.path
 import argparse
+import logging
+
 import hexdump
 
 from ..mciutil import (
@@ -13,12 +16,12 @@ from ..mciutil import (
 )
 
 
-def main():
-    """
-    main cli runner
+def cli_entry():
+    args = _get_cli_parser().parse_args()
+    _main(args)
 
-    :return: exit code
-    """
+
+def _get_cli_parser():
 
     parser = argparse.ArgumentParser(
         description="MasterCard parameter file conversion utility"
@@ -29,41 +32,52 @@ def main():
                         help="encoding format of source file",
                         choices=["ebcdic", "ascii"],
                         default="ebcdic")
-    parser.add_argument("-d", "--debug",
-                        help="turn debugging output on",
-                        action="store_true")
+    logging_arg_group = parser.add_argument_group("logging options")
+    logging_arg_group.add_argument("-d", "--debug",
+                                   help="turn debugging output on",
+                                   action="store_const",
+                                   dest="loglevel",
+                                   const=logging.DEBUG,
+                                   default=logging.WARNING)
+    logging_arg_group.add_argument("-v", "--verbose",
+                                   help="turn information output on",
+                                   action="store_const",
+                                   dest="loglevel",
+                                   const=logging.INFO)
 
-    args = parser.parse_args()
+    return parser
+
+
+def _main(args):
+
+    logging.basicConfig(
+        level=args.loglevel,
+        format='%(asctime)s:%(name)s:%(lineno)s:%(levelname)s:%(message)s'
+    )
+
+    # exit if input file does not exist
+    if not os.path.isfile(args.input):
+        print("Input file not found - {}".format(args.input))
+        exit(8)
 
     input_filename = args.input
     output_filename = args.output
     if not args.output:
         output_filename = input_filename + ".out"
 
-    source_format = args.sourceformat
-    debug = args.debug
-
     # read file to string
-    input_file = open(input_filename, 'rb').read()
-    print("%s bytes read from %s".format(len(input_file), input_filename))
+    with open(input_filename, 'rb') as infile:
+        input_file = infile.read()
 
-    # deblock the fil   e
+    print("{} bytes read from {}".format(len(input_file), input_filename))
+
+    # deblock the file
     input_file = unblock(input_file)
 
-    # convert the file from source to target encoding
-    output_list = []     # output array
-    record_count = 0
-
     # convert the file
-    for record_count, record in enumerate(input_file, 1):
-        # convert data
-        if source_format == "ebcdic":
-            record = _convert_text_eb2asc(record)
-        else:
-            record = _convert_text_asc2eb(record)
-
-        # add converted record data to output
-        output_list.append(record)
+    output_list = [
+        _convert(record, args.sourceformat) for record in input_file
+    ]
 
     # re-block the data
     output_data = block(output_list)
@@ -72,10 +86,10 @@ def main():
     with open(output_filename, "wb") as output_file:
         output_file.write(output_data)
 
-    print("%s bytes written to %s".format(len(output_data), output_filename))
-    print("%s records".format(record_count))
+    print("{} bytes written to {}".format(len(output_data), output_filename))
+    print("{} records".format(len(output_list)))
 
-    if debug:
+    if args.loglevel == logging.DEBUG:
         print("DEBUG:Input first 5000 bytes")
         hexdump.hexdump(input_file[:5000])
         print("DEBUG:Output first 5000 bytes")
@@ -89,5 +103,15 @@ def main():
     print("Done!")
 
 
+def _convert(record, source_format):
+    # convert data
+    if source_format == "ebcdic":
+        record = _convert_text_eb2asc(record)
+    else:
+        record = _convert_text_asc2eb(record)
+    return record
+
+
 if __name__ == "__main__":
-    main()
+    main_args = _get_cli_parser().parse_args()
+    _main(main_args)

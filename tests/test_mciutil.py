@@ -115,12 +115,12 @@ class TestGetMessageElements(TestCase):
         de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
                      "              \\BRISBANE     \\4000      QLDAUS")
         de43_elements = _get_de43_fields(de43_raw)
-        self.assertEquals(de43_elements["DE43_NAME"], b"AAMI")
-        self.assertEquals(de43_elements["DE43_ADDRESS"], b"36 WICKHAM TERRACE")
-        self.assertEquals(de43_elements["DE43_SUBURB"], b"BRISBANE")
-        self.assertEquals(de43_elements["DE43_POSTCODE"], b"4000")
-        self.assertEquals(de43_elements["DE43_STATE"], b"QLD")
-        self.assertEquals(de43_elements["DE43_COUNTRY"], b"AUS")
+        self.assertEqual(de43_elements["DE43_NAME"], b"AAMI")
+        self.assertEqual(de43_elements["DE43_ADDRESS"], b"36 WICKHAM TERRACE")
+        self.assertEqual(de43_elements["DE43_SUBURB"], b"BRISBANE")
+        self.assertEqual(de43_elements["DE43_POSTCODE"], b"4000")
+        self.assertEqual(de43_elements["DE43_STATE"], b"QLD")
+        self.assertEqual(de43_elements["DE43_COUNTRY"], b"AUS")
 
     def test_vbs_to_line(self):
         vbs_record = b("\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A1234567890")
@@ -132,10 +132,10 @@ class TestGetMessageElements(TestCase):
         linebreakdata = [b('1234567890'), b('1234567890')]
         vbsdata = mciutil.vbs_pack(linebreakdata)
         hexdump.hexdump(vbsdata)
-        self.assertEquals(vbsdata,
-                          b"\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
-                          b"7890\x00\x00\x00\x00",
-                          )
+        self.assertEqual(vbsdata,
+                         b"\x00\x00\x00\x0A1234567890\x00\x00\x00\x0A123456"
+                         b"7890\x00\x00\x00\x00",
+                         )
 
     def test_unblock(self):
         umodedata = ((b("\x00\x00\x00\x0A1234567890") * 72) +
@@ -157,7 +157,7 @@ class TestGetMessageElements(TestCase):
 
     def test_mask_pan(self):
         card_number = b("1234567890123456")
-        self.assertEquals(_mask_pan(card_number), b"123456*******456")
+        self.assertEqual(_mask_pan(card_number), b"123456*******456")
 
     def test_flip_message_elements_ascii(self):
         message_raw = b(
