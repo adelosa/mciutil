@@ -40,7 +40,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mideu = mciutil.cli.mideu:cli_entry',
-            'paramconv = mciutil.cli.paramconv:main',
+            'paramconv = mciutil.cli.paramconv:cli_entry',
         ]
     },
     license='BSD',
