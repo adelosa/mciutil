@@ -19,7 +19,8 @@ def extract_command(args):
     """
 
     # Read input file
-    input_file = open(args.input, 'rb').read()
+    with open(args.input, 'rb') as infile:
+        input_file = infile.read()
     LOGGER.info("%s bytes read from %s", len(input_file), args.input)
 
     # Unblock input

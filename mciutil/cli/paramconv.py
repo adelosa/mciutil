@@ -66,7 +66,9 @@ def _main(args):
         output_filename = input_filename + ".out"
 
     # read file to string
-    input_file = open(input_filename, 'rb').read()
+    with open(input_filename, 'rb') as infile:
+        input_file = infile.read()
+
     print("{} bytes read from {}".format(len(input_file), input_filename))
 
     # deblock the file
