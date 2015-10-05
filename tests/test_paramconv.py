@@ -1,5 +1,4 @@
 import os
-import hexdump
 from unittest import TestCase
 from mciutil import b, block
 from mciutil.cli.paramconv import _get_cli_parser, _main
