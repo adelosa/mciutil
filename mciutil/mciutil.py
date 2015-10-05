@@ -10,6 +10,7 @@ import decimal
 import codecs
 
 import bitarray
+import hexdump
 
 LOGGER = logging.getLogger(__name__)
 
@@ -153,17 +154,20 @@ def flip_message_encoding(message, bit_config, source_format):
     # add back the bitmap - no encoding
     flipped_message += binary_bitmap
 
-    for bit in range(2, 128):
-        if bitmap_list[bit]:
-            return_message, message_increment = \
-                _flip_element_encoding(bit_config[bit],
-                                       message_data[message_pointer:],
-                                       source_format)
+    for bit in range(2, 128):   # cycle each bit
+        if bitmap_list[bit]:    # if bit is on for message
+            if bit in bit_config:   # if config available for bit
+                return_message, message_increment = \
+                    _flip_element_encoding(bit_config[bit],
+                                           message_data[message_pointer:],
+                                           source_format)
+            else:
+                print("No config found for bit {}".format(bit))
+                raise Exception("Config missing for bit {}".format(bit))
 
             # Increment the message pointer and process next field
             message_pointer += message_increment
             flipped_message += return_message
-
     return flipped_message
 
 
@@ -195,9 +199,21 @@ def _flip_element_encoding(bit_config, message_data, source_format):
     # flip except for ICC field
     if field_processor != 'ICC':
         if source_format == 'ebcdic':
-            flipped_element += _convert_text_eb2asc(field_data)
+            converted_data = _convert_text_eb2asc(field_data)
         else:
-            flipped_element += _convert_text_asc2eb(field_data)
+            converted_data = _convert_text_asc2eb(field_data)
+        if len(field_data) != len(converted_data):
+            raise Exception("Conversion returned different lengths\n{}\n{}"
+                            .format(
+                                hexdump.hexdump(
+                                    field_data, result="return"),
+                                hexdump.hexdump(
+                                    converted_data, result='return')
+                                )
+                            )
+        flipped_element += converted_data
+    else:  # Add ICC data as is
+        flipped_element += field_data
 
     return flipped_element, field_length + length_size
 
@@ -381,7 +397,7 @@ def _convert_text_eb2asc(value_to_convert):
     :return: converted ascii text
     """
 
-    val = codecs.encode(codecs.decode(value_to_convert, "cp500"), "utf8")
+    val = codecs.encode(codecs.decode(value_to_convert, "cp500"), "latin-1")
     return val
 
 
@@ -393,7 +409,7 @@ def _convert_text_asc2eb(value_to_convert):
     :return: converted EBCDIC text
     """
 
-    return codecs.encode(codecs.decode(value_to_convert, "utf8"), "cp500")
+    return codecs.encode(codecs.decode(value_to_convert, "latin-1"), "cp500")
 
 
 def _get_bitmap_list(binary_bitmap):
@@ -438,6 +454,7 @@ def _get_pds_fields(field_data):
             field_data[field_pointer+7:field_pointer+7+pds_field_length]
         LOGGER.debug("pds_field_data=[%s]", str(pds_field_data))
         return_values["PDS" + pds_field_tag.decode()] = pds_field_data
+
         # increment the fieldPointer
         field_pointer += 7+pds_field_length
 
@@ -466,7 +483,5 @@ if sys.version_info < (3,):
     def b(x):
         return x
 else:
-    # import codecs
-
     def b(x):
         return codecs.latin_1_encode(x)[0]

@@ -9,7 +9,7 @@ import os.path
 import argparse
 import logging
 
-import hexdump
+from hexdump import hexdump
 
 from ..mciutil import (
     block, unblock, _convert_text_eb2asc, _convert_text_asc2eb
@@ -91,14 +91,14 @@ def _main(args):
 
     if args.loglevel == logging.DEBUG:
         print("DEBUG:Input first 5000 bytes")
-        hexdump.hexdump(input_file[:5000])
+        hexdump(input_file[:5000])
         print("DEBUG:Output first 5000 bytes")
-        hexdump.hexdump(output_data[:5000])
+        hexdump(output_data[:5000])
 
         print("DEBUG:Input last 5000 bytes")
-        hexdump.hexdump(input_file[len(output_data)-5000:len(input_file)])
+        hexdump(input_file[len(output_data)-5000:len(input_file)])
         print("DEBUG:Output last 5000 bytes")
-        hexdump.hexdump(output_data[len(output_data)-5000:len(output_data)])
+        hexdump(output_data[len(output_data)-5000:len(output_data)])
 
     print("Done!")
 

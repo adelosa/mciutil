@@ -169,11 +169,11 @@ class TestGetMessageElements(TestCase):
                       "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
                       "567806999999")
 
-        message_elements = mciutil.flip_message_encoding(
+        message_elements = flip_message_encoding(
             message_raw, CONFIG['data_elements'], 'ascii')
         print("************* E B C D I C ******************")
         hexdump.hexdump(message_elements)
-        message_elements = mciutil.flip_message_encoding(
+        message_elements = flip_message_encoding(
             message_elements, CONFIG['data_elements'], 'ebcdic')
         print("************* A S C I I ********************")
         hexdump.hexdump(message_elements)

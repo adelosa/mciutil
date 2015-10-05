@@ -34,9 +34,9 @@ def convert_command(args):
     print("****** START LC {} ********".format(datetime.datetime.now().time()))
     output_records = [
         flip_message_encoding(
-                              record,
-                              config["bit_config"],
-                              args.sourceformat
+            record,
+            config["bit_config"],
+            args.sourceformat
         ) for record in input_data
     ]
     print("****** END LC {} ********".format(datetime.datetime.now().time()))

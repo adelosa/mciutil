@@ -37,9 +37,9 @@ def extract_command(args):
     # parse the records
     output_list = [
         get_message_elements(
-                              record,
-                              config["bit_config"],
-                              args.sourceformat
+            record,
+            config["bit_config"],
+            args.sourceformat
         ) for record in input_file
     ]
 
@@ -91,4 +91,3 @@ def add_to_mongo(data_list, field_list, mongo_config):
 
     LOGGER.info("Loading %s items", len(filtered_data_list))
     return db_client.mastercardtransactions.insert_many(filtered_data_list)
-
