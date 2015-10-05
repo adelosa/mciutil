@@ -19,15 +19,21 @@ class CommandLineTestCase(TestCase):
 class ParamConvTestCase(CommandLineTestCase):
 
     def test_with_empty_args(self):
-        with self.assertRaises(SystemExit):
-            self.parser.parse_args([])
+        # with self.assertRaises(SystemExit):
+        #     self.parser.parse_args([])
+        self.assertRaises(SystemExit,
+                          lambda: self.parser.parse_args([]))
+
 
     def test_with_bad_filename(self):
         test_file = 'abc.txt'
         args = self.parser.parse_args([test_file])
-        with self.assertRaises(SystemExit) as stat:
-            _main(args)
-        self.assertEquals(stat.exception.code, 8)
+        # with self.assertRaises(SystemExit) as stat:
+        #     _main(args)
+        # self.assertEquals(stat.exception.code, 8)
+        self.assertRaises(SystemExit,
+                          lambda: _main(args))
+
 
     def test_with_ascii_file(self):
         # convert to ebcdic

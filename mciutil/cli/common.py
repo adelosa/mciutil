@@ -51,7 +51,12 @@ def add_to_csv(data_list, field_list, output_filename):
                                 fieldnames=field_list,
                                 extrasaction="ignore",
                                 lineterminator="\n")
-        writer.writeheader()
+        # python 2.6 does not support writeheader() so skip
+        if sys.version_info[0] == 2 and sys.version_info[1] == 6:
+            pass
+        else:
+            writer.writeheader()
+
         writer.writerows(filtered_data_list)
     LOGGER.info("%s records written", len(data_list))
 
@@ -60,10 +65,20 @@ def filter_data_list(data_list, field_list):
     return [filter_dictionary(item, field_list) for item in data_list]
 
 
+# if sys.version_info[0] == 2 and sys.version_info[1] == 6:
 def filter_dictionary(dictionary, field_list):
-    """
-    Takes dictionary and list of elements and returns dictionary with just
-    elements specified. Also decodes the items to unicode
-    """
-    return {item: dictionary[item].decode() for item in dictionary
-            if item in field_list}
+    return_dictionary = {}
+    for item in dictionary:
+        if item in field_list:
+            return_dictionary[item] = dictionary[item].decode()
+
+    return return_dictionary
+# else:
+#     def filter_dictionary(dictionary, field_list):
+#         """
+#         Takes dictionary and list of elements and returns dictionary with just
+#         elements specified. Also decodes the items to unicode
+#         """
+#         print("{},{}".format(sys.version_info.major, sys.version_info.minor))
+#         return {item: dictionary[item].decode() for item in dictionary
+#                 if item in field_list}

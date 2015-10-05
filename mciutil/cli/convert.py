@@ -31,7 +31,7 @@ def convert_command(args):
     with open(config_filename, 'r') as config_file:
         config = yaml.load(config_file)
 
-    print("****** START LC {} ********".format(datetime.datetime.now().time()))
+    print("****** START LC {0} ********".format(datetime.datetime.now().time()))
     output_records = [
         flip_message_encoding(
             record,
@@ -39,7 +39,7 @@ def convert_command(args):
             args.sourceformat
         ) for record in input_data
     ]
-    print("****** END LC {} ********".format(datetime.datetime.now().time()))
+    print("****** END LC {0} ********".format(datetime.datetime.now().time()))
 
     output_data = block(output_records)
 

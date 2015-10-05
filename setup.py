@@ -15,7 +15,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    'PyYAML', 'hexdump', 'bitarray', 'pymongo'
+    'PyYAML', 'hexdump', 'bitarray', 'pymongo', 'argparse'
 ]
 
 test_requirements = [
@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='mciutil',
-    version='0.3.0',
+    version='0.4.0',
     description='MasterCard file utilities',
     long_description=readme + '\n\n' + history,
     author='Anthony Delosa',
@@ -52,6 +52,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',

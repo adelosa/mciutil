@@ -2,10 +2,14 @@
 
 History
 -------
+0.4.0 (2015-10-05)
+------------------
+* Now supporting python 2.6 (for all those still using RHEL 6)
+* Headers rows in mideu csv extracts don't work in 2.6
 
 0.3.0 (2015-10-03)
 ------------------
-* added subcommands for mideu
+* added sub commands for mideu
 * mideu now supports IPM encoding conversion between ascii and ebcdic
 * Now faster using list comps instead of slow loops
 

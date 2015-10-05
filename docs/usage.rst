@@ -62,7 +62,12 @@ This runs with the following assumptions
 * Input file format is EBCDIC
 * Output file is the input file plus a '.csv' extension
 
-If you need to process an ASCII file::
+.. attention::
+   Currently python 2.6 does not print a header row as the csv library only
+   added this support in python 2.7. This function may be added in a future
+   release.
+
+If you need to process an ASCII encoded file::
 
     mideu extract -s ascii <filename>
 

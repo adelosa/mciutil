@@ -131,9 +131,11 @@ def vbs_pack(records):
 
 def flip_message_encoding(message, bit_config, source_format):
     """
-    flip the encoding of an ISO8583 style message
-    :param message:
-    :param source_format:
+    Flip the encoding of an ISO8583 style file between ASCII and EBCDIC
+
+    :param message: The data to be flipped
+    :param bit_config: dictionary of bit mapping configuration
+    :param source_format: The encoding of the source {ebcdic, ascii}
     :return: message encoded
     """
     message_length = len(message)-20
@@ -478,9 +480,14 @@ def _get_de43_fields(de43_field):
         de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
     return de43_elements
 
-
 if sys.version_info < (3,):
     def b(x):
+        """
+        Create a byte field - used to support 2/3 string differences
+
+        :param x: input string
+        :return: a byte array containing the string
+        """
         return x
 else:
     def b(x):
