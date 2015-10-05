@@ -57,7 +57,7 @@ def _main(args):
 
     # exit if input file does not exist
     if not os.path.isfile(args.input):
-        print("Input file not found - {}".format(args.input))
+        print("Input file not found - {0}".format(args.input))
         exit(8)
 
     input_filename = args.input
@@ -69,7 +69,7 @@ def _main(args):
     with open(input_filename, 'rb') as infile:
         input_file = infile.read()
 
-    print("{} bytes read from {}".format(len(input_file), input_filename))
+    print("{0} bytes read from {1}".format(len(input_file), input_filename))
 
     # deblock the file
     input_file = unblock(input_file)
@@ -86,8 +86,8 @@ def _main(args):
     with open(output_filename, "wb") as output_file:
         output_file.write(output_data)
 
-    print("{} bytes written to {}".format(len(output_data), output_filename))
-    print("{} records".format(len(output_list)))
+    print("{0} bytes written to {1}".format(len(output_data), output_filename))
+    print("{0} records".format(len(output_list)))
 
     if args.loglevel == logging.DEBUG:
         print("DEBUG:Input first 5000 bytes")
