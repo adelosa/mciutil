@@ -1,6 +1,13 @@
+"""
+mciutil.cli.convert
+
+provides functionality for mideu subcommand convert
+"""
+
+from __future__ import print_function
+
 import logging
 import yaml
-import datetime
 
 from mciutil import flip_message_encoding, unblock, block
 from mciutil.cli.common import get_config_filename
@@ -31,7 +38,6 @@ def convert_command(args):
     with open(config_filename, 'r') as config_file:
         config = yaml.load(config_file)
 
-    print("****** START LC {0} ********".format(datetime.datetime.now().time()))
     output_records = [
         flip_message_encoding(
             record,
@@ -39,7 +45,6 @@ def convert_command(args):
             args.sourceformat
         ) for record in input_data
     ]
-    print("****** END LC {0} ********".format(datetime.datetime.now().time()))
 
     output_data = block(output_records)
 

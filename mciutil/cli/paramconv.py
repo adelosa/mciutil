@@ -1,10 +1,10 @@
-#!/usr/bin/env python
 """
-paramconv
----------
+mciutil.cli.paramconv
 
-Convert MasterCard Parameter Extract files between ASCII and EBCDIC encoding
+provides functionality for cli tool paramconv
 """
+from __future__ import print_function
+
 import os.path
 import argparse
 import logging
@@ -14,41 +14,46 @@ from hexdump import hexdump
 from ..mciutil import (
     block, unblock, _convert_text_eb2asc, _convert_text_asc2eb
 )
+from mciutil.cli.common import add_logging_arg_group, add_source_format_arg
 
 
 def cli_entry():
+    """
+    paramconv main cli entry
+
+    :return: None
+    """
     args = _get_cli_parser().parse_args()
     _main(args)
 
 
 def _get_cli_parser():
+    """
+    paramconv argparse parser create
+
+    :return: parser
+    """
+
 
     parser = argparse.ArgumentParser(
         description="MasterCard parameter file conversion utility"
     )
     parser.add_argument("input", help="MasterCard parameter file name")
     parser.add_argument("-o", "--output", help="Converted parameter file name")
-    parser.add_argument("-s", "--sourceformat",
-                        help="encoding format of source file",
-                        choices=["ebcdic", "ascii"],
-                        default="ebcdic")
-    logging_arg_group = parser.add_argument_group("logging options")
-    logging_arg_group.add_argument("-d", "--debug",
-                                   help="turn debugging output on",
-                                   action="store_const",
-                                   dest="loglevel",
-                                   const=logging.DEBUG,
-                                   default=logging.WARNING)
-    logging_arg_group.add_argument("-v", "--verbose",
-                                   help="turn information output on",
-                                   action="store_const",
-                                   dest="loglevel",
-                                   const=logging.INFO)
+
+    add_source_format_arg(parser)
+    add_logging_arg_group(parser)
 
     return parser
 
 
 def _main(args):
+    """
+    paramconv main processing
+
+    :param args: argparse arguments
+    :return: exit code
+    """
 
     logging.basicConfig(
         level=args.loglevel,
@@ -104,6 +109,13 @@ def _main(args):
 
 
 def _convert(record, source_format):
+    """
+    Convert record between encoding scheme
+
+    :param record: data to be converted
+    :param source_format: ebcdic or ascii
+    :return: converted record
+    """
     # convert data
     if source_format == "ebcdic":
         record = _convert_text_eb2asc(record)
@@ -113,5 +125,4 @@ def _convert(record, source_format):
 
 
 if __name__ == "__main__":
-    main_args = _get_cli_parser().parse_args()
-    _main(main_args)
+    _main(_get_cli_parser().parse_args())

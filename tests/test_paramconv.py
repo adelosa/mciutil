@@ -24,7 +24,6 @@ class ParamConvTestCase(CommandLineTestCase):
         self.assertRaises(SystemExit,
                           lambda: self.parser.parse_args([]))
 
-
     def test_with_bad_filename(self):
         test_file = 'abc.txt'
         args = self.parser.parse_args([test_file])
@@ -33,7 +32,6 @@ class ParamConvTestCase(CommandLineTestCase):
         # self.assertEquals(stat.exception.code, 8)
         self.assertRaises(SystemExit,
                           lambda: _main(args))
-
 
     def test_with_ascii_file(self):
         # convert to ebcdic

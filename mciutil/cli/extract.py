@@ -1,12 +1,21 @@
+"""
+mciutil.cli.extract
+
+provides functionality for mideu sub-command extract
+"""
+
+from __future__ import print_function
+
 import logging
 import yaml
 import pymongo
 
 from mciutil import unblock, get_message_elements
-from mciutil.cli.common import (get_config_filename,
-                                add_to_csv,
-                                filter_data_list,
-                                )
+from mciutil.cli.common import (
+    get_config_filename,
+    add_to_csv,
+    filter_data_list,
+)
 
 LOGGER = logging.getLogger(__name__)
 
