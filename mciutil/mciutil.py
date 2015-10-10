@@ -1,6 +1,9 @@
-""" mciutil function library
+"""
+mciutil function library
+
 Contains functions to work with MasterCard formatted files
 """
+from __future__ import print_function
 
 import logging
 import sys
@@ -174,6 +177,16 @@ def flip_message_encoding(message, bit_config, source_format):
 
 
 def _flip_element_encoding(bit_config, message_data, source_format):
+    """
+    Converts a field in an iso8583 style message from ascii to ebcdic
+
+    :param bit_config: dict of field iso8583 bits mapping
+    :param message_data: the message containing the field
+    :param source_format: encoding of source -- ebcdic or ascii
+    :returns: converted string
+    :returns: pointer to next field in message
+
+    """
 
     flipped_element = b("")
 
@@ -205,14 +218,12 @@ def _flip_element_encoding(bit_config, message_data, source_format):
         else:
             converted_data = _convert_text_asc2eb(field_data)
         if len(field_data) != len(converted_data):
-            raise Exception("Conversion returned different lengths\n{}\n{}"
-                            .format(
-                                hexdump.hexdump(
-                                    field_data, result="return"),
-                                hexdump.hexdump(
-                                    converted_data, result='return')
-                                )
-                            )
+            raise Exception(
+                "Conversion returned different lengths\n{}\n{}".format(
+                    hexdump.hexdump(field_data, result="return"),
+                    hexdump.hexdump(converted_data, result='return')
+                )
+            )
         flipped_element += converted_data
     else:  # Add ICC data as is
         flipped_element += field_data
@@ -381,6 +392,12 @@ def _convert_to_type(field_data, bit_config):
 
 
 def _get_field_length(bit_config):
+    """
+    Determine length of iso8583 style field
+
+    :param bit_config: dictionary of bit config data
+    :return: length of field
+    """
     length_size = 0
 
     if bit_config['field_type'] == "LLVAR":
@@ -393,9 +410,9 @@ def _get_field_length(bit_config):
 
 def _convert_text_eb2asc(value_to_convert):
     """
-    Converts a string from EBCDIC to UTF8
+    Converts a string from ebcdic to ascii
 
-    :param value_to_convert: The EBCDIC value to convert
+    :param value_to_convert: The ebcdic value to convert
     :return: converted ascii text
     """
 
@@ -405,10 +422,10 @@ def _convert_text_eb2asc(value_to_convert):
 
 def _convert_text_asc2eb(value_to_convert):
     """
-    Converts a string from EBCDIC to UTF8
+    Converts a string from ebcdic to ascii
 
-    :param value_to_convert: The ASCII value to convert
-    :return: converted EBCDIC text
+    :param value_to_convert: The ascii value to convert
+    :return: converted ebcdic text
     """
 
     return codecs.encode(codecs.decode(value_to_convert, "latin-1"), "cp500")
@@ -416,8 +433,11 @@ def _convert_text_asc2eb(value_to_convert):
 
 def _get_bitmap_list(binary_bitmap):
     """
-    Takes a binary bitmap and returns a list of bits. Element 0 is input
-    binary bitmap.
+    Get list of bits from binary bitmap
+
+    :param binary_bitmap: the binary bitmap to be returned
+    :return: the list containing bit values. Bit 0 contains original binary
+             bitmap
     """
 
     working_bitmap_list = bitarray.bitarray(endian='big')
@@ -433,10 +453,12 @@ def _get_bitmap_list(binary_bitmap):
 
 
 def _get_pds_fields(field_data):
-    """ field processor for PDS fields
-    * Takes Pds FieldData
-    * Returns hash of PDS elements.
-    * Key is PDS number, Value is value
+    """
+    Get MasterCard pds fields from iso field
+
+    :param field_data: the field containing pds fieldss
+    :return: dictionary of pds key values
+             key in the form PDSxxxx where x is zero filled number of pds
     """
 
     field_pointer = 0
@@ -465,7 +487,9 @@ def _get_pds_fields(field_data):
 
 def _get_de43_fields(de43_field):
     """
-    Field processor for field 43 (Merchant name and address)
+    get pds 43 field breakdown
+    :param de43_field: data of pds 43
+    :return: dictionary of pds 43 sub elements
     """
 
     de43_elements = {}
@@ -481,14 +505,20 @@ def _get_de43_fields(de43_field):
     return de43_elements
 
 if sys.version_info < (3,):
-    def b(x):
+    def b(string):
         """
-        Create a byte field - used to support 2/3 string differences
+        Create a byte string field - Python 2.x
 
-        :param x: input string
+        :param string: input string
         :return: a byte array containing the string
         """
-        return x
+        return string
 else:
-    def b(x):
-        return codecs.latin_1_encode(x)[0]
+    def b(string):
+        """
+        Create a byte string field - Python 3.x
+
+        :param string: input string
+        :return: a byte array containing the string
+        """
+        return codecs.latin_1_encode(string)[0]

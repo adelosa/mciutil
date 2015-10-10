@@ -125,6 +125,7 @@ The file is a basic yaml file with the following sections
 
 **output_data_elements**
     Specify fields to output. Set the order and fields to be output.
+
 Structure::
 
     output_data_elements:
@@ -138,6 +139,7 @@ Structure::
     Define the bitmap fields. You should not need to change this but if you
     think you need to, have a look at the source to see what the options mean.
     Will document this in more details at some point.
+
 Structure::
 
     bit_config:
@@ -154,6 +156,7 @@ Structure::
 **mongo_config**
     Specify mongo host and port details. Command line options will override
     options provided in a config file
+
 Structure::
 
     mongo_config:
