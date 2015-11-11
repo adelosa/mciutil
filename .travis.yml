@@ -11,11 +11,14 @@ python:
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - "pip install pylint"
-  - "pip install ."
+  - "pip install coveralls"
   - "pip install -r requirements.txt"
 
-before_script: "pylint mciutil"
-
 # command to run tests, e.g. python setup.py test
-script: python setup.py test
+script: 
+  - python setup.py install
+  - nosetests --with-coverage --cover-package=mciutil
+
+after_success:
+  - coveralls
+
