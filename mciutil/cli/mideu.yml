@@ -1,1 +1,155 @@
-# Specify mongodb connection detailsmongo_config:  host: 192.168.99.100:27017  db: test# Provides specifications for ISO8583 fieldsbit_config:  1:    field_name: Bitmap secondary    field_type: FIXED    field_length: 8  2:    field_name: PAN    field_type: LLVAR    field_length: 0    field_processor: PAN  3:    field_name: Processing code    field_type: FIXED    field_length: 6  4:    field_name: Amount transaction    field_type: FIXED    field_length: 12    field_python_type: long  12:    field_name: Date/Time local transaction    field_type: FIXED    field_length: 12    field_python_type: datetime  22:    field_name: Point of service data code    field_type: FIXED    field_length: 12  24:    field_name: Function code    field_type: FIXED    field_length: 3  26:    field_name: Card acceptor business code    field_type: FIXED    field_length: 4    field_python_type: int  31:    field_name: Acquirer reference data    field_type: LLVAR    field_length: 23  33:    field_name: Forwarding inst id    field_type: LLVAR    field_length: 0  38:    field_name: Approval code    field_type: FIXED    field_length: 6  42:    field_name: Card acceptor Id    field_type: FIXED    field_length: 15  43:    field_name: Card acceptor name/location    field_type: LLVAR    field_length: 0    field_processor: DE43  48:    field_name: Additional data    field_type: LLLVAR    field_length: 0    field_processor: PDS  49:    field_name: Currency code    field_type: FIXED    field_length: 3  71:    field_name: Message number    field_type: FIXED    field_length: 8    field_python_tyoe: long  94:    field_name: Transaction originator institution ID    field_type: LLVAR    field_length: 0  73:    field_name: Date, Action    field_type: FIXED    field_length: 6  23:    field_name: Card sequence number    field_type: FIXED    field_length: 3  40:    field_name: Service code    field_type: FIXED    field_length: 3  55:    field_name: ICC system related data    field_type: LLLVAR    field_length: 255    field_processor: ICC  63:    field_name: Transaction lifecycle Id    field_type: LLLVAR    field_length: 16# default output elements for mideu utility if not providedoutput_data_elements:  - MTI  - DE2  - DE3  - DE4  - DE12  - DE22  - DE24  - DE26  - DE31  - DE33  - DE38  - DE42  - DE49  - DE71  - DE94  - DE73  - DE23  - DE40  - DE63  - PDS0023  - PDS0052  - PDS0148  - PDS0158  - PDS0165  - DE43_NAME  - DE43_SUBURB  - DE43_POSTCODE
+# Specify mongodb connection details
+mongo_config:
+  host: 192.168.99.100:27017
+  db: test
+
+# Provides specifications for ISO8583 fields
+bit_config:
+  1:
+    field_name: Bitmap secondary
+    field_type: FIXED
+    field_length: 8
+  2:
+    field_name: PAN
+    field_type: LLVAR
+    field_length: 0
+    field_processor: PAN
+  3:
+    field_name: Processing code
+    field_type: FIXED
+    field_length: 6
+  4:
+    field_name: Amount transaction
+    field_type: FIXED
+    field_length: 12
+    field_python_type: long
+  12:
+    field_name: Date/Time local transaction
+    field_type: FIXED
+    field_length: 12
+    field_python_type: datetime
+  14:
+    field_name: Expiration date
+    field_type: FIXED
+    field_length: 4
+  22:
+    field_name: Point of service data code
+    field_type: FIXED
+    field_length: 12
+  23:
+    field_name: Card sequence number
+    field_type: FIXED
+    field_length: 3
+  24:
+    field_name: Function code
+    field_type: FIXED
+    field_length: 3
+  25:
+    field_name: Message reason code
+    field_type: FIXED
+    field_length: 4
+  26:
+    field_name: Card acceptor business code
+    field_type: FIXED
+    field_length: 4
+    field_python_type: int
+  31:
+    field_name: Acquirer reference data
+    field_type: LLVAR
+    field_length: 23
+  33:
+    field_name: Forwarding inst id
+    field_type: LLVAR
+    field_length: 0
+  37:
+    field_name: Retrieval reference number
+    field_type: FIXED
+    field_length: 12
+  38:
+    field_name: Approval code
+    field_type: FIXED
+    field_length: 6
+  40:
+    field_name: Service code
+    field_type: FIXED
+    field_length: 3
+  41:
+    field_name: Card acceptor terminal ID
+    field_type: FIXED
+    field_length: 8
+  42:
+    field_name: Card acceptor Id
+    field_type: FIXED
+    field_length: 15
+  43:
+    field_name: Card acceptor name/location
+    field_type: LLVAR
+    field_length: 0
+    field_processor: DE43
+  48:
+    field_name: Additional data
+    field_type: LLLVAR
+    field_length: 0
+    field_processor: PDS
+  49:
+    field_name: Currency code
+    field_type: FIXED
+    field_length: 3
+  55:
+    field_name: ICC system related data
+    field_type: LLLVAR
+    field_length: 255
+    field_processor: ICC
+  63:
+    field_name: Transaction lifecycle Id
+    field_type: LLLVAR
+    field_length: 16
+  71:
+    field_name: Message number
+    field_type: FIXED
+    field_length: 8
+    field_python_tyoe: long
+  73:
+    field_name: Date, Action
+    field_type: FIXED
+    field_length: 6
+  94:
+    field_name: Transaction originator institution ID
+    field_type: LLVAR
+    field_length: 0
+
+# default output elements for mideu utility if not provided
+
+output_data_elements:
+  - MTI
+  - DE2
+  - DE3
+  - DE4
+  - DE12
+  - DE14
+  - DE22
+  - DE23
+  - DE24
+  - DE25
+  - DE26
+  - DE31
+  - DE33
+  - DE37
+  - DE38
+  - DE42
+  - DE49
+  - DE71
+  - DE94
+  - DE73
+  - DE23
+  - DE40
+  - DE63
+  - PDS0023
+  - PDS0052
+  - PDS0148
+  - PDS0158
+  - PDS0165
+  - DE43_NAME
+  - DE43_SUBURB
+  - DE43_POSTCODE
+
