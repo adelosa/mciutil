@@ -132,20 +132,27 @@ output_data_elements:
   - DE24
   - DE25
   - DE26
+  - DE30
   - DE31
   - DE33
   - DE37
   - DE38
-  - DE42
-  - DE49
-  - DE71
-  - DE94
-  - DE73
-  - DE23
   - DE40
+  - DE41
+  - DE42
+  - DE48
+  - DE49
+  - DE50
   - DE63
+  - DE71
+  - DE73
+  - DE93
+  - DE94
+  - DE95
+  - DE100
   - PDS0023
   - PDS0052
+  - PDS0122
   - PDS0148
   - PDS0158
   - PDS0165
