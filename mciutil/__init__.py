@@ -11,4 +11,4 @@ from .mciutil import (
 
 __author__ = 'Anthony Delosa'
 __email__ = 'adelosa@gmail.com'
-__version__ = '0.4.0'
+__version__ = '0.4.1'
