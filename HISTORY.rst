@@ -1,7 +1,11 @@
 .. :changelog:
 
 History
--------
+=======
+0.4.1 (2015-12-16)
+------------------
+* Additional data elements added to default config file.
+
 0.4.0 (2015-10-05)
 ------------------
 * Now supporting python 2.6 (for all those still using RHEL 6)
