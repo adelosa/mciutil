@@ -3,9 +3,10 @@ import hexdump
 
 # Public import
 import mciutil
+
 # Private functions
 from mciutil.mciutil import (
-    _convert_text_asc2eb, _get_de43_fields, _mask_pan, b, flip_message_encoding
+    _convert_text_asc2eb, _get_de43_fields, _mask_pan, b, flip_message_encoding, _get_icc_fields
 )
 
 CONFIG = {
@@ -161,13 +162,14 @@ class TestGetMessageElements(TestCase):
 
     def test_flip_message_elements_ascii(self):
         message_raw = b(
-                      "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
-                      "\x00\x00\x00\x00" +
-                      "1644445555444455551111110000000099992015081517151234"
-                      "5678901233312342357995799120000001230612061234561234"
-                      "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE"
-                      "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
-                      "567806999999")
+          "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
+          "\x00\x00\x00\x00" +
+          "1644445555444455551111110000000099992015081517151234"
+          "5678901233312342357995799120000001230612061234561234"
+          "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE"
+          "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
+          "567806999999"
+        )
 
         message_elements = flip_message_encoding(
             message_raw, CONFIG['data_elements'], 'ascii')
@@ -179,3 +181,23 @@ class TestGetMessageElements(TestCase):
         hexdump.hexdump(message_elements)
         print("********************************************")
         self.assertEqual(message_raw, message_elements)
+
+
+class TestDe55unblock(TestCase):
+
+    de55_field = b(
+        "\x9f\x26\x08\x3e\x24\x24\xed\xa3\x69"
+        "\xaa\x47\x9f\x36\x02\x04\xdd\x82\x02\x20\x00\x9f\x02\x06\x00\x00"
+        "\x00\x00\x14\x50\x9f\x03\x06\x00\x00\x00\x00\x00\x00\x9f\x27\x01"
+        "\x80\x9f\x34\x03\x1f\x00\x00\x9f\x53\x01\xb5"
+    )
+
+    def test_get_de55_fields(self):
+        return_dict = _get_icc_fields(self.de55_field)
+        print(return_dict)
+        self.assertNotEqual(return_dict.get("TAG9F26", False), False)
+        self.assertEqual(return_dict['TAG9F26'], b("3e2424eda369aa47"))
+        self.assertNotEqual(return_dict.get("TAG9F36", False), False)
+        self.assertEqual(return_dict['TAG9F36'], b("04dd"))
+        self.assertNotEqual(return_dict.get("TAG82", False), False)
+        self.assertEqual(return_dict['TAG82'], b("2000"))
