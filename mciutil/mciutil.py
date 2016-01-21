@@ -496,17 +496,16 @@ def _get_icc_fields(field_data):
     :return: dictionary of de55 key values
              key is tag+tagid
     """
+    TWO_BYTE_TAG_PREFIXES = [b("\x9f"), b("\x5f")]
 
     field_pointer = 0
-    return_values = {}
-
-    return_values["ICC_DATA"] = binascii.b2a_hex(field_data)
+    return_values = {"ICC_DATA": binascii.b2a_hex(field_data)}
 
     while field_pointer < len(field_data):
         # get the tag id (one byte)
         field_tag = field_data[field_pointer:field_pointer+1]
         # set to 2 bytes if 2 byte tag
-        if field_tag[0:1] in [b("\x9f"), b("\x5f")]:
+        if field_tag in TWO_BYTE_TAG_PREFIXES:
             field_tag = field_data[field_pointer:field_pointer+2]
             field_pointer += 2
         else:
