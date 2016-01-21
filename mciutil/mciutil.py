@@ -11,6 +11,7 @@ import struct
 import datetime
 import decimal
 import codecs
+import binascii
 
 import bitarray
 import hexdump
@@ -61,7 +62,6 @@ def vbs_unpack(vbs_data):
 
         # exit if last record (length=0)
         if record_length == 0:
-            vbs_pointer = len(vbs_data)
             break
 
         # get record data
@@ -163,12 +163,13 @@ def flip_message_encoding(message, bit_config, source_format):
         if bitmap_list[bit]:    # if bit is on for message
             if bit in bit_config:   # if config available for bit
                 return_message, message_increment = \
-                    _flip_element_encoding(bit_config[bit],
-                                           message_data[message_pointer:],
-                                           source_format)
+                    _flip_element_encoding(
+                        bit_config[bit],
+                        message_data[message_pointer:],
+                        source_format)
             else:
-                print("No config found for bit {}".format(bit))
-                raise Exception("Config missing for bit {}".format(bit))
+                print("No config found for bit {0}".format(bit))
+                raise Exception("Config missing for bit {0}".format(bit))
 
             # Increment the message pointer and process next field
             message_pointer += message_increment
@@ -191,12 +192,13 @@ def _flip_element_encoding(bit_config, message_data, source_format):
     flipped_element = b("")
 
     field_length = bit_config['field_length']
+    print("processing field {0}".format(bit_config["field_name"]))
 
     length_size = _get_field_length(bit_config)
 
     if length_size > 0:
-        field_length_string = \
-            message_data[:length_size]
+        field_length_string = message_data[:length_size]
+        print("field_length_string {0}, {1}".format(length_size, field_length_string))
         if source_format == 'ebcdic':
             field_length_string = _convert_text_eb2asc(field_length_string)
             field_length = int(field_length_string)
@@ -206,8 +208,7 @@ def _flip_element_encoding(bit_config, message_data, source_format):
 
         flipped_element += field_length_string
 
-    field_data = \
-        message_data[length_size:length_size+field_length]
+    field_data = message_data[length_size:length_size+field_length]
 
     field_processor = _set_parameter(bit_config,
                                      'field_processor')
@@ -219,7 +220,7 @@ def _flip_element_encoding(bit_config, message_data, source_format):
             converted_data = _convert_text_asc2eb(field_data)
         if len(field_data) != len(converted_data):
             raise Exception(
-                "Conversion returned different lengths\n{}\n{}".format(
+                "Conversion returned different lengths\n{0}\n{1}".format(
                     hexdump.hexdump(field_data, result="return"),
                     hexdump.hexdump(converted_data, result='return')
                 )
@@ -248,6 +249,7 @@ def get_message_elements(message, bit_config, source_format):
     * key = 'MTI' message type indicator
     * key = 'DEx' data elements
     * key = 'PDSxxxx' private data fields
+    * key = 'TAGxxxx' icc fields
 
     """
 
@@ -301,15 +303,12 @@ def _process_element(bit, bit_config, message_data, source_format):
     length_size = _get_field_length(bit_config)
 
     if length_size > 0:
-        field_length_string = \
-            message_data[:length_size]
+        field_length_string = message_data[:length_size]
         if source_format == 'ebcdic':
-            field_length_string = \
-                _convert_text_eb2asc(field_length_string)
+            field_length_string = _convert_text_eb2asc(field_length_string)
         field_length = int(field_length_string)
 
-    field_data = \
-        message_data[length_size:length_size+field_length]
+    field_data = message_data[length_size:length_size+field_length]
 
     field_processor = _set_parameter(bit_config,
                                      'field_processor')
@@ -338,6 +337,10 @@ def _process_element(bit, bit_config, message_data, source_format):
     # if a DE43 field, break in down again and add to results
     if field_processor == 'DE43':
         return_values.update(_get_de43_fields(field_data))
+
+    # if ICC field, break into tags
+    if field_processor == 'ICC':
+        return_values.update(_get_icc_fields(field_data))
 
     return return_values, field_length + length_size
 
@@ -456,7 +459,7 @@ def _get_pds_fields(field_data):
     """
     Get MasterCard pds fields from iso field
 
-    :param field_data: the field containing pds fieldss
+    :param field_data: the field containing pds fields
     :return: dictionary of pds key values
              key in the form PDSxxxx where x is zero filled number of pds
     """
@@ -485,6 +488,49 @@ def _get_pds_fields(field_data):
     return return_values
 
 
+def _get_icc_fields(field_data):
+    """
+    Get de55 fields from message
+
+    :param field_data: the field containing de55
+    :return: dictionary of de55 key values
+             key is tag+tagid
+    """
+    TWO_BYTE_TAG_PREFIXES = [b("\x9f"), b("\x5f")]
+
+    field_pointer = 0
+    return_values = {"ICC_DATA": binascii.b2a_hex(field_data)}
+
+    while field_pointer < len(field_data):
+        # get the tag id (one byte)
+        field_tag = field_data[field_pointer:field_pointer+1]
+        # set to 2 bytes if 2 byte tag
+        if field_tag in TWO_BYTE_TAG_PREFIXES:
+            field_tag = field_data[field_pointer:field_pointer+2]
+            field_pointer += 2
+        else:
+            field_pointer += 1
+
+        field_tag_display = binascii.b2a_hex(field_tag)
+        print("field_tag_display={0}".format(field_tag_display))
+        field_length_raw = field_data[field_pointer:field_pointer+1]
+        field_length = struct.unpack(">B", field_length_raw)[0]
+
+        LOGGER.debug("%s", format(field_tag_display))
+        LOGGER.debug(field_length)
+
+        # get the pds data
+        de_field_data = field_data[field_pointer+1:field_pointer+field_length+1]
+        de_field_data_display = binascii.b2a_hex(de_field_data)
+        LOGGER.debug("%s", de_field_data_display)
+        return_values["TAG" + field_tag_display.upper().decode()] = de_field_data_display
+
+        # increment the fieldPointer
+        field_pointer += 1+field_length
+
+    return return_values
+
+
 def _get_de43_fields(de43_field):
     """
     get pds 43 field breakdown
@@ -498,10 +544,8 @@ def _get_de43_fields(de43_field):
     de43_elements["DE43_ADDRESS"] = de43_split[1].rstrip()
     de43_elements["DE43_SUBURB"] = de43_split[2].rstrip()
     de43_elements["DE43_POSTCODE"] = de43_split[3][:4]
-    de43_elements["DE43_STATE"] = \
-        de43_split[3][len(de43_split[3])-6:len(de43_split[3])-3]
-    de43_elements["DE43_COUNTRY"] = \
-        de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
+    de43_elements["DE43_STATE"] = de43_split[3][len(de43_split[3])-6:len(de43_split[3])-3]
+    de43_elements["DE43_COUNTRY"] = de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
     return de43_elements
 
 if sys.version_info < (3,):

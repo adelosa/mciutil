@@ -159,4 +159,5 @@ output_data_elements:
   - DE43_NAME
   - DE43_SUBURB
   - DE43_POSTCODE
+  - ICC_DATA
 
