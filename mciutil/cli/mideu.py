@@ -9,6 +9,7 @@ import os.path
 import logging
 import argparse
 
+from mciutil import _version
 from mciutil.cli.common import add_logging_arg_group, add_source_format_arg
 from mciutil.cli.extract import extract_command
 from mciutil.cli.convert import convert_command
@@ -57,7 +58,8 @@ def _get_cli_parser():
     :return: parser
     """
     parser = argparse.ArgumentParser(
-        description="MasterCard IPM file formatter"
+        description="MasterCard IPM file formatter ({version})".format(
+            version=_version.get_versions()['version'])
     )
 
     subparsers = parser.add_subparsers(help="Sub-command help")

@@ -11,4 +11,7 @@ from .mciutil import (
 
 __author__ = 'Anthony Delosa'
 __email__ = 'adelosa@gmail.com'
-__version__ = '0.4.1'
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

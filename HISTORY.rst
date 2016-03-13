@@ -2,6 +2,11 @@
 
 History
 =======
+0.4.2 (2016-03-13)
+------------------
+* Complete data elements added to default config.
+* Added versioneer support for easier package versions
+
 0.4.1 (2015-12-16)
 ------------------
 * Additional data elements added to default config file.
