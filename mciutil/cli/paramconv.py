@@ -11,9 +11,8 @@ import logging
 
 from hexdump import hexdump
 
-from ..mciutil import (
-    block, unblock, _convert_text_eb2asc, _convert_text_asc2eb
-)
+from mciutil import block, unblock, _version
+from ..mciutil import _convert_text_eb2asc, _convert_text_asc2eb
 from mciutil.cli.common import add_logging_arg_group, add_source_format_arg
 
 
@@ -33,10 +32,9 @@ def _get_cli_parser():
 
     :return: parser
     """
-
-
     parser = argparse.ArgumentParser(
-        description="MasterCard parameter file conversion utility"
+        description="MasterCard parameter file conversion utility ({version})".format(
+            version=_version.get_versions()['version'])
     )
     parser.add_argument("input", help="MasterCard parameter file name")
     parser.add_argument("-o", "--output", help="Converted parameter file name")

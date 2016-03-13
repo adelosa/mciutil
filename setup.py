@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import versioneer
 
 try:
     from setuptools import setup
@@ -24,7 +24,6 @@ test_requirements = [
 
 setup(
     name='mciutil',
-    version='0.4.1',
     description='MasterCard file utilities',
     long_description=readme + '\n\n' + history,
     author='Anthony Delosa',
@@ -60,5 +59,7 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=test_requirements,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
 )
