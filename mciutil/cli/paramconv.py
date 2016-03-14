@@ -38,6 +38,9 @@ def _get_cli_parser():
     )
     parser.add_argument("input", help="MasterCard parameter file name")
     parser.add_argument("-o", "--output", help="Converted parameter file name")
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s ("+_version.get_versions()['version']+")",
+                        help="Get version information")
 
     add_source_format_arg(parser)
     add_logging_arg_group(parser)
