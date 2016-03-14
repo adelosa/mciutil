@@ -61,6 +61,9 @@ def _get_cli_parser():
         description="MasterCard IPM file formatter ({version})".format(
             version=_version.get_versions()['version'])
     )
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s ("+_version.get_versions()['version']+")",
+                        help="Get version information")
 
     subparsers = parser.add_subparsers(help="Sub-command help")
 
