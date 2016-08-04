@@ -59,6 +59,7 @@ def vbs_unpack(vbs_data):
 
         # get numerical record length
         record_length = struct.unpack(">i", record_length_raw)[0]
+        LOGGER.debug("record_length=%s", record_length)
 
         # exit if last record (length=0)
         if record_length == 0:
@@ -252,7 +253,7 @@ def get_message_elements(message, bit_config, source_format):
     * key = 'TAGxxxx' icc fields
 
     """
-
+    LOGGER.debug("processing record %s", hexdump.hexdump(message))
     # split raw message into components MessageType(4B), Bitmap(16B),
     # Message(l=*)
     message_length = len(message)-20
@@ -272,6 +273,7 @@ def get_message_elements(message, bit_config, source_format):
 
     for bit in range(2, 128):
         if bitmap_list[bit]:
+            LOGGER.debug("processing bit %s", bit)
             return_message, message_increment = \
                 _process_element(bit,
                                  bit_config[bit],

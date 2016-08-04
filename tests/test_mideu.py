@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os.path
 import sys
 import hexdump
@@ -34,6 +35,18 @@ class CommandLineTestCase(TestCase):
         create_test_ascii_ipm_file()
         create_test_ebcdic_ipm_file()
         create_test_ascii_de55_ipm_file()
+
+
+class MideuCommonTestCase(CommandLineTestCase):
+    def test_enter_with_no_subcommand(self):
+        """
+        try calling standard entry without sub command.. should return help text
+        :return:
+        """
+        # run with no parms.. argparse should fail
+        self.assertRaises(SystemExit, lambda: self.parser.parse_args())
+        # run with no parms.. pass none
+        _main(None)
 
 
 class MideuExtractTestCase(CommandLineTestCase):
