@@ -34,6 +34,10 @@ def _main(args):
     :param args: argparse arguments
     :return: exit code
     """
+    if not hasattr(args, "loglevel"):
+        print(__name__ + " ("+_version.get_versions()['version']+")")
+        print("try --help for information")
+        return
 
     logging.basicConfig(
         level=args.loglevel,
