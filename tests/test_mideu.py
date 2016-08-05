@@ -35,6 +35,7 @@ class CommandLineTestCase(TestCase):
         create_test_ascii_ipm_file()
         create_test_ebcdic_ipm_file()
         create_test_ascii_de55_ipm_file()
+        create_bad_ascii_ipm_file()
 
 
 class MideuCommonTestCase(CommandLineTestCase):
@@ -119,6 +120,11 @@ class MideuExtractTestCase(CommandLineTestCase):
         args = self.parser.parse_args(["extract", "-s", "ascii",
                                        "build/test/test_ascii_de55_ipm.in"])
         _main(args)
+
+    def test_with_bad_ascii_file(self):
+        args = self.parser.parse_args(["extract", "-s", "ascii",
+                                       "build/test/test_bad_ascii_ipm.in"])
+        self.assertRaises(Exception, lambda: _main(args))
 
 
 class CsvOutputTest(TestCase):
@@ -212,6 +218,25 @@ def create_test_ascii_ipm_file():
     # add 5 records to a list
     message_list = [message_raw for x in range(5)]
     block_and_write_list(message_list, TEST_ASCII_IPM_FILENAME)
+
+
+def create_bad_ascii_ipm_file():
+    """
+    Create a test IPM file with length greater than bitmap data.
+    This record has additional byte added
+    """
+    message_raw = b(
+        "\x00\x00\x00\xee1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
+        "\x00\x00\x00\x00"
+        "1644445555444455551111110000000099992015081517151234"
+        "5678901233312342357995799120000001230612061234561234"
+        "5657994211111111145BIG BOBS\\70 FERNDALE ST\\ANNERLE"
+        "Y\\4103  QLDAUS0080001001Y99901600000000000000011234"
+        "567806999999^"
+    )
+    filename = "build/test/test_bad_ascii_ipm.in"
+    with open(filename, 'wb') as output_file:
+        output_file.write(message_raw)
 
 
 def block_and_write_list(message_list, file_name):
