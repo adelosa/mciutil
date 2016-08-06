@@ -113,6 +113,11 @@ class TestGetMessageElements(TestCase):
         self.assertEqual(message_elements["DE3"], b"111111")
         self.assertEqual(message_elements["DE4"], b"000000009999")
 
+    def test_get_de43_elements_no_pattern_match(self):
+        de43_raw = b("MUMBAI EMV ATM - 2  MUMBAI      IN")
+        de43_elements = _get_de43_fields(de43_raw)
+        self.assertEqual({}, de43_elements)
+
     def test_get_de43_elements(self):
         de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
                      "              \\BRISBANE     \\4000      QLDAUS")

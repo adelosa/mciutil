@@ -11,6 +11,7 @@ import struct
 import datetime
 import decimal
 import codecs
+import re
 import binascii
 
 import bitarray
@@ -175,6 +176,16 @@ def flip_message_encoding(message, bit_config, source_format):
             # Increment the message pointer and process next field
             message_pointer += message_increment
             flipped_message += return_message
+
+    # check that all of message has been consumed, otherwise raise exception
+    if message_pointer != len(message_data):
+        raise Exception(
+            "Message data not correct length. Bitmap indicates len={0}, message is len={1}\n{2}".format(
+                message_pointer,
+                len(message_data),
+                hexdump.hexdump(message_data, result="return")
+            )
+        )
     return flipped_message
 
 
@@ -193,13 +204,13 @@ def _flip_element_encoding(bit_config, message_data, source_format):
     flipped_element = b("")
 
     field_length = bit_config['field_length']
-    print("processing field {0}".format(bit_config["field_name"]))
+    LOGGER.debug("processing field %s", bit_config["field_name"])
 
     length_size = _get_field_length(bit_config)
 
     if length_size > 0:
         field_length_string = message_data[:length_size]
-        print("field_length_string {0}, {1}".format(length_size, field_length_string))
+        LOGGER.debug("field_length_string %s, %s", length_size, field_length_string)
         if source_format == 'ebcdic':
             field_length_string = _convert_text_eb2asc(field_length_string)
             field_length = int(field_length_string)
@@ -253,7 +264,7 @@ def get_message_elements(message, bit_config, source_format):
     * key = 'TAGxxxx' icc fields
 
     """
-    LOGGER.debug("processing record %s", hexdump.hexdump(message))
+    LOGGER.debug("Processing message: len=%s contents:\n%s", len(message), hexdump.hexdump(message, result="return"))
     # split raw message into components MessageType(4B), Bitmap(16B),
     # Message(l=*)
     message_length = len(message)-20
@@ -283,6 +294,16 @@ def get_message_elements(message, bit_config, source_format):
             # Increment the message pointer and process next field
             message_pointer += message_increment
             return_values.update(return_message)
+
+    # check that all of message has been consumed, otherwise raise exception
+    if message_pointer != len(message_data):
+        raise Exception(
+            "Message data not correct length. Bitmap indicates len={0}, message is len={1}\n{2}".format(
+                message_pointer,
+                len(message_data),
+                hexdump.hexdump(message_data, result="return")
+            )
+        )
 
     return return_values
 
@@ -514,7 +535,7 @@ def _get_icc_fields(field_data):
             field_pointer += 1
 
         field_tag_display = binascii.b2a_hex(field_tag)
-        print("field_tag_display={0}".format(field_tag_display))
+        LOGGER.debug("field_tag_display=%s", field_tag_display)
         field_length_raw = field_data[field_pointer:field_pointer+1]
         field_length = struct.unpack(">B", field_length_raw)[0]
 
@@ -539,16 +560,22 @@ def _get_de43_fields(de43_field):
     :param de43_field: data of pds 43
     :return: dictionary of pds 43 sub elements
     """
+    LOGGER.debug("de43_field=%s", de43_field)
+    de43_regex = (
+        r"(?P<DE43_NAME>.+?) *\\(?P<DE43_ADDRESS>.+?) *\\(?P<DE43_SUBURB>.+?) *\\"
+        r"(?P<DE43_POSTCODE>\d{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
+    )
 
-    de43_elements = {}
-    de43_split = de43_field.split(b('\\'))
-    de43_elements["DE43_NAME"] = de43_split[0].rstrip()
-    de43_elements["DE43_ADDRESS"] = de43_split[1].rstrip()
-    de43_elements["DE43_SUBURB"] = de43_split[2].rstrip()
-    de43_elements["DE43_POSTCODE"] = de43_split[3][:4]
-    de43_elements["DE43_STATE"] = de43_split[3][len(de43_split[3])-6:len(de43_split[3])-3]
-    de43_elements["DE43_COUNTRY"] = de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
-    return de43_elements
+    field_match = re.match(de43_regex, de43_field.decode())
+    if not field_match:
+        return dict()
+    # get the dict
+    field_dict = field_match.groupdict()
+    # set fields in dict to bytes (no effect for py2)
+    for field in field_dict:
+        field_dict[field] = b(field_dict[field])
+
+    return field_dict
 
 if sys.version_info < (3,):
     def b(string):
