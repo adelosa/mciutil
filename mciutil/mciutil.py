@@ -11,6 +11,7 @@ import struct
 import datetime
 import decimal
 import codecs
+import re
 import binascii
 
 import bitarray
@@ -559,16 +560,22 @@ def _get_de43_fields(de43_field):
     :param de43_field: data of pds 43
     :return: dictionary of pds 43 sub elements
     """
+    LOGGER.debug("de43_field=%s", de43_field)
+    de43_regex = (
+        r"(?P<DE43_NAME>.+?) *\\(?P<DE43_ADDRESS>.+?) *\\(?P<DE43_SUBURB>.+?) *\\"
+        r"(?P<DE43_POSTCODE>\d{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
+    )
 
-    de43_elements = {}
-    de43_split = de43_field.split(b('\\'))
-    de43_elements["DE43_NAME"] = de43_split[0].rstrip()
-    de43_elements["DE43_ADDRESS"] = de43_split[1].rstrip()
-    de43_elements["DE43_SUBURB"] = de43_split[2].rstrip()
-    de43_elements["DE43_POSTCODE"] = de43_split[3][:4]
-    de43_elements["DE43_STATE"] = de43_split[3][len(de43_split[3])-6:len(de43_split[3])-3]
-    de43_elements["DE43_COUNTRY"] = de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
-    return de43_elements
+    field_match = re.match(de43_regex, de43_field.decode())
+    if not field_match:
+        return dict()
+    # get the dict
+    field_dict = field_match.groupdict()
+    # set fields in dict to bytes (no effect for py2)
+    for field in field_dict:
+        field_dict[field] = b(field_dict[field])
+
+    return field_dict
 
 if sys.version_info < (3,):
     def b(string):
