@@ -44,6 +44,13 @@ def add_source_format_arg(parser):
         default="ebcdic"
     )
 
+    parser.add_argument(
+        "--no1014blocking",
+        help="do not use 1014 block format. Just vbs type record",
+        dest="no_1014_blocking",
+        action="store_true"
+    )
+
 
 def add_logging_arg_group(parser):
     """

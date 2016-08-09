@@ -2,6 +2,10 @@
 
 History
 =======
+0.4.6 (2016-08-09)
+------------------
+* added ``--no1014blocking`` option to allow processing of VBS structure files.
+
 0.4.5 (2016-08-06)
 ------------------
 * check that all of message consumed by fields otherwise raise exception

@@ -3,7 +3,7 @@ mciutil.cli.paramconv
 
 provides functionality for cli tool paramconv
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import os.path
 import argparse
@@ -11,8 +11,8 @@ import logging
 
 from hexdump import hexdump
 
-from mciutil import block, unblock, _version
-from ..mciutil import _convert_text_eb2asc, _convert_text_asc2eb
+from mciutil import block, unblock, vbs_unpack, vbs_pack, _version
+from mciutil.mciutil import _convert_text_eb2asc, _convert_text_asc2eb
 from mciutil.cli.common import add_logging_arg_group, add_source_format_arg
 
 
@@ -77,16 +77,22 @@ def _main(args):
 
     print("{0} bytes read from {1}".format(len(input_file), input_filename))
 
-    # deblock the file
-    input_file = unblock(input_file)
+    # unpack the file
+    if args.no_1014_blocking:
+        input_file = vbs_unpack(input_file)
+    else:
+        input_file = unblock(input_file)
 
     # convert the file
     output_list = [
         _convert(record, args.sourceformat) for record in input_file
     ]
 
-    # re-block the data
-    output_data = block(output_list)
+    # re-pack the data
+    if args.no_1014_blocking:
+        output_data = vbs_pack(output_list)
+    else:
+        output_data = block(output_list)
 
     # save to file
     with open(output_filename, "wb") as output_file:
