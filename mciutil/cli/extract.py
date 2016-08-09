@@ -10,7 +10,7 @@ import logging
 import yaml
 import pymongo
 
-from mciutil import unblock, get_message_elements
+from mciutil import unblock, vbs_unpack, get_message_elements
 from mciutil.cli.common import (
     get_config_filename,
     add_to_csv,
@@ -32,8 +32,11 @@ def extract_command(args):
         input_file = infile.read()
     LOGGER.info("%s bytes read from %s", len(input_file), args.input)
 
-    # Unblock input
-    input_file = unblock(input_file)
+    # Unpack input
+    if args.no_1014_blocking:
+        input_file = vbs_unpack(input_file)
+    else:
+        input_file = unblock(input_file)
 
     # get config filename
     config_filename = get_config_filename("mideu.yml")

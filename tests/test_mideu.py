@@ -5,12 +5,13 @@ import hexdump
 
 from unittest import TestCase
 
-from mciutil.mciutil import block, _convert_text_asc2eb, b
+from mciutil.mciutil import block, vbs_pack, _convert_text_asc2eb, b
 from mciutil.cli.mideu import _get_cli_parser, _main
 from mciutil.cli.common import get_config_filename, filter_dictionary
 
-TEST_ASCII_IPM_FILENAME = "build/test/test_ascii_ipm.in"
-TEST_EBCDIC_IPM_FILENAME = "build/test/test_ebcdic_ipm.in"
+TEST_ASCII_IPM_FILENAME = "build/test/test_ascii_ipm"
+TEST_EBCDIC_IPM_FILENAME = "build/test/test_ebcdic_ipm"
+
 HEADER_LINE = (
     "MTI,DE2,DE3,DE4,DE12,DE14,DE22,DE23,DE24,DE25,DE26,DE30,DE31,DE33,"
     "DE37,DE38,DE40,DE41,DE42,DE48,DE49,DE50,DE63,DE71,DE73,DE93,DE94,"
@@ -68,9 +69,9 @@ class MideuExtractTestCase(CommandLineTestCase):
 
     def test_with_ascii_file_only(self):
         args = self.parser.parse_args(["extract", "-s", "ascii",
-                                       TEST_ASCII_IPM_FILENAME])
+                                       ".".join([TEST_ASCII_IPM_FILENAME, "1014block"])])
         _main(args)
-        with open(TEST_ASCII_IPM_FILENAME + ".csv", 'r') as csv_file:
+        with open(".".join([TEST_ASCII_IPM_FILENAME, "1014block"]) + ".csv", 'r') as csv_file:
             csv_file_lines = csv_file.readlines()
             print(csv_file_lines)
 
@@ -93,9 +94,9 @@ class MideuExtractTestCase(CommandLineTestCase):
 
     def test_with_ebcdic_file_only(self):
         args = self.parser.parse_args(["extract", "-d",
-                                       TEST_EBCDIC_IPM_FILENAME])
+                                       ".".join([TEST_EBCDIC_IPM_FILENAME, "1014block"])])
         _main(args)
-        with open(TEST_EBCDIC_IPM_FILENAME + ".csv", 'r') as csv_file:
+        with open(".".join([TEST_EBCDIC_IPM_FILENAME, "1014block"]) + ".csv", 'r') as csv_file:
             csv_file_lines = csv_file.readlines()
             print(csv_file_lines)
 
@@ -155,31 +156,38 @@ class GetConfigFilenameTest(TestCase):
 
 
 class MideuConvertTestCases(CommandLineTestCase):
-    def test_with_ascii_file_only(self):
-        print("************ ASCII IN ****************")
-        with open(TEST_ASCII_IPM_FILENAME, "rb") as ascii_file:
-            ascii_data = ascii_file.read()
-            hexdump.hexdump(ascii_data)
-
-        args = self.parser.parse_args(["convert", "-s", "ascii",
-                                       TEST_ASCII_IPM_FILENAME])
-        _main(args)
-
+    def test_de55_file(self):
         # Convert file with DE55 in it
         args = self.parser.parse_args(["convert", "-s", "ascii",
                                        "build/test/test_ascii_de55_ipm.in"])
         _main(args)
 
+    def test_with_ascii_file_1014_block(self):
+        self.run_file_both_directions("1014block", "-v")
+
+    def test_with_ascii_file_vbs(self):
+        self.run_file_both_directions("vbs", "--no1014blocking")
+
+    def run_file_both_directions(self, file_postfix, option):
+        print("************ ASCII IN ****************")
+        with open(".".join([TEST_ASCII_IPM_FILENAME, file_postfix]), "rb") as ascii_file:
+            ascii_data = ascii_file.read()
+            hexdump.hexdump(ascii_data)
+
+        args = self.parser.parse_args(["convert", "-s", "ascii", option,
+                                       ".".join([TEST_ASCII_IPM_FILENAME, file_postfix])])
+        _main(args)
+
         print("************ EBCDIC IN ****************")
-        with open(TEST_ASCII_IPM_FILENAME + ".out", "rb") as ebcdic_file:
+        with open(".".join([TEST_ASCII_IPM_FILENAME, file_postfix]) + ".out", "rb") as ebcdic_file:
             ebcdic_data = ebcdic_file.read()
             hexdump.hexdump(ebcdic_data)
 
-        args = self.parser.parse_args(["convert",
-                                       TEST_ASCII_IPM_FILENAME + ".out"])
+        args = self.parser.parse_args(["convert", option,
+                                       ".".join([TEST_ASCII_IPM_FILENAME, file_postfix]) + ".out"])
         _main(args)
 
-        with open(TEST_ASCII_IPM_FILENAME + ".out.out", "rb") as ascii2_file:
+        with open(".".join([TEST_ASCII_IPM_FILENAME, file_postfix]) + ".out.out", "rb") as ascii2_file:
             ascii2_data = ascii2_file.read()
 
         self.assertEqual(ascii2_data, ascii_data)
@@ -199,7 +207,7 @@ def create_test_ebcdic_ipm_file():
         )
     # add 5 records to a list
     message_list = [message_raw for x in range(5)]
-    block_and_write_list(message_list, TEST_EBCDIC_IPM_FILENAME)
+    block_and_write_list(message_list, ".".join([TEST_EBCDIC_IPM_FILENAME, "1014block"]))
 
 
 def create_test_ascii_ipm_file():
@@ -217,7 +225,8 @@ def create_test_ascii_ipm_file():
     )
     # add 5 records to a list
     message_list = [message_raw for x in range(5)]
-    block_and_write_list(message_list, TEST_ASCII_IPM_FILENAME)
+    block_and_write_list(message_list, ".".join([TEST_ASCII_IPM_FILENAME, "1014block"]))
+    write_vbs_list(message_list, ".".join([TEST_ASCII_IPM_FILENAME, "vbs"]))
 
 
 def create_bad_ascii_ipm_file():
@@ -245,6 +254,14 @@ def block_and_write_list(message_list, file_name):
         os.makedirs(os.path.dirname(file_name))
     with open(file_name, 'wb') as output_file:
         output_file.write(block(message_list))
+
+
+def write_vbs_list(message_list, file_name):
+    # write to file
+    if not os.path.exists(os.path.dirname(file_name)):
+        os.makedirs(os.path.dirname(file_name))
+    with open(file_name, 'wb') as output_file:
+        output_file.write(vbs_pack(message_list))
 
 
 def create_test_ascii_de55_ipm_file():
