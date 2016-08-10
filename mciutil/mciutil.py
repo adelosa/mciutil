@@ -27,12 +27,19 @@ def unblock(blocked_data):
     :param blocked_data: String containing 1014 blocked data or file
     :return: list of records in file
     """
-
+    block_warning_triggered = False
     file_pointer = 0
     unblock_data = []
 
     while file_pointer <= len(blocked_data):
         unblock_data.append(blocked_data[file_pointer:file_pointer+1012])
+        LOGGER.debug("Block chars [%s]", blocked_data[file_pointer+1012:file_pointer+1014])
+        if not block_warning_triggered and (
+                blocked_data[file_pointer+1012:file_pointer+1014] not in (b(''), b("\x40\x40"))):
+            LOGGER.warn("File may not be in 1014 blocked format - found unusual EOB marker %s, usually x'40'x'40'\n"
+                        "Consider using --no1014blocking option if file is VBS format",
+                        blocked_data[file_pointer+1012:file_pointer+1014])
+            block_warning_triggered = True
         file_pointer += 1014
 
     return vbs_unpack(b("").join(unblock_data))
