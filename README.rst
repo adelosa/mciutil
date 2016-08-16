@@ -8,8 +8,8 @@ MasterCard file utilities
 .. image:: https://img.shields.io/pypi/v/mciutil.svg
         :target: https://pypi.python.org/pypi/mciutil
 
-.. image:: https://coveralls.io/repos/adelosa/mciutil/badge.svg?branch=feature%2Fupdate-travis-ci-settings&service=github
-        :target: https://coveralls.io/github/adelosa/mciutil?branch=feature%2Fupdate-travis-ci-settings
+.. image:: https://coveralls.io/repos/adelosa/mciutil/badge.svg?branch=develop&service=github
+        :target: https://coveralls.io/github/adelosa/mciutil?branch=develop
 
 
 Set of command line utilities to work with various MasterCard files.
