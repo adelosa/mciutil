@@ -573,7 +573,7 @@ def _get_de43_fields(de43_field):
         r"(?P<DE43_POSTCODE>\S{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
     )
 
-    field_match = re.match(de43_regex, de43_field.decode(encoding='latin-1'))
+    field_match = re.match(de43_regex, de43_field.decode('latin-1'))
     if not field_match:
         return dict()
 
