@@ -570,14 +570,16 @@ def _get_de43_fields(de43_field):
     LOGGER.debug("de43_field=%s", de43_field)
     de43_regex = (
         r"(?P<DE43_NAME>.+?) *\\(?P<DE43_ADDRESS>.+?) *\\(?P<DE43_SUBURB>.+?) *\\"
-        r"(?P<DE43_POSTCODE>\d{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
+        r"(?P<DE43_POSTCODE>\S{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
     )
 
-    field_match = re.match(de43_regex, de43_field.decode())
+    field_match = re.match(de43_regex, de43_field.decode(encoding='latin-1'))
     if not field_match:
         return dict()
+
     # get the dict
     field_dict = field_match.groupdict()
+
     # set fields in dict to bytes (no effect for py2)
     for field in field_dict:
         field_dict[field] = b(field_dict[field])

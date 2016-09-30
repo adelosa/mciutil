@@ -118,6 +118,15 @@ class TestGetMessageElements(TestCase):
         de43_elements = _get_de43_fields(de43_raw)
         self.assertEqual({}, de43_elements)
 
+    def test_get_de43_elements_utf8_char(self):
+        """
+        issue raised by raymond wong - unicard. Unicode de43 names causing issues
+        """
+        de43_raw = b("GOLDEN FIELD CAF\xc9\\1163 PINETREE WAY UNIT 10\\COQUITLAM\\V3B8A9    BC CAN")
+        de43_elements = _get_de43_fields(de43_raw)
+        self.assertEqual(de43_elements["DE43_NAME"], b"GOLDEN FIELD CAF\xc9")
+        self.assertEqual(de43_elements["DE43_POSTCODE"], b"V3B8A9")
+
     def test_get_de43_elements(self):
         de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
                      "              \\BRISBANE     \\4000      QLDAUS")
