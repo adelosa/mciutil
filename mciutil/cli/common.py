@@ -103,20 +103,40 @@ def add_to_csv(data_list, field_list, output_filename):
     :param output_filename: filename for output CSV file
     :return: None
     """
+    try:
+        instance_type = unicode
+        file_mode = "wb"
+    except NameError:
+        instance_type = str
+        file_mode = "w"
+
     filtered_data_list = filter_data_list(data_list, field_list)
 
-    with open(output_filename, "w") as output_file:
+    with open(output_filename, file_mode) as output_file:
         writer = csv.DictWriter(output_file,
                                 fieldnames=field_list,
                                 extrasaction="ignore",
                                 lineterminator="\n")
+
         # python 2.6 does not support writeheader() so skip
         if sys.version_info[0] == 2 and sys.version_info[1] == 6:
             pass
         else:
             writer.writeheader()
 
-        writer.writerows(filtered_data_list)
+        for item in filtered_data_list:
+            if file_mode == "w":
+                row = dict(
+                    (k, v.decode('latin1') if not isinstance(v, instance_type) else v)
+                    for k, v in item.items()
+                )
+            else:
+                row = dict(
+                    (k, v.encode('utf-8') if isinstance(v, instance_type) else v)
+                    for k, v in item.items()
+                )
+            writer.writerow(row)
+
     LOGGER.info("%s records written", len(data_list))
 
 
@@ -145,7 +165,7 @@ def filter_dictionary(dictionary, field_list):
     return_dictionary = {}
     for item in dictionary:
         if item in field_list:
-            return_dictionary[item] = dictionary[item].decode()
+            return_dictionary[item] = dictionary[item]
 
     return return_dictionary
 

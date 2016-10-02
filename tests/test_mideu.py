@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import
 import os.path
 import sys
@@ -143,7 +145,19 @@ class FilteredDictionaryTest(TestCase):
     def test_filter_dict(self):
         dict = {"a": b("123"), "b": b("456"), "c": b("789")}
         field_list = ["a", "c"]
-        expected_dict = {"a": "123", "c": "789"}
+        expected_dict = {"a": b("123"), "c": b("789")}
+        actual_dict = filter_dictionary(dict, field_list)
+        self.assertEqual(len(actual_dict), 2)
+        self.assertEqual(actual_dict, expected_dict)
+
+    def test_filter_dict_with_latin1(self):
+        dict = {
+            "a": b("123\xc9"),
+            "b": b("456\xc9"),
+            "c": b("789\xc9")
+        }
+        field_list = ["a", "c"]
+        expected_dict = {"a": b("123\xc9"), "c": b("789\xc9")}
         actual_dict = filter_dictionary(dict, field_list)
         self.assertEqual(len(actual_dict), 2)
         self.assertEqual(actual_dict, expected_dict)
