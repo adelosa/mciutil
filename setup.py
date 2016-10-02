@@ -32,9 +32,10 @@ setup(
     packages=[
         'mciutil', 'mciutil.cli'
     ],
-    package_dir={'mciutil':
-                 'mciutil'},
     include_package_data=True,
+    package_data={
+        'mciutil.cli': ['*.yml']
+    },
     install_requires=requirements,
     entry_points={
         'console_scripts': [

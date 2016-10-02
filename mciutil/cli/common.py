@@ -8,6 +8,7 @@ import os
 import sys
 import logging
 import csv
+from pkg_resources import resource_filename
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,12 +87,14 @@ def get_config_filename(config_filename):
     user_home_dir = os.path.expanduser("~")
 
     if os.path.isfile(current_dir + "/" + config_filename):
-        return current_dir + "/" + config_filename
+        config_filename = current_dir + "/" + config_filename
     elif os.path.isfile(user_home_dir + "/." + config_filename):
-        return user_home_dir + "/." + config_filename
+        config_filename = user_home_dir + "/." + config_filename
     else:
-        module_dir = os.path.dirname(os.path.abspath(__file__))
-        return module_dir + "/" + config_filename
+        module_dir = resource_filename("mciutil", "cli")
+        config_filename = module_dir + "/" + config_filename
+    LOGGER.info("Using {0} config file".format(config_filename))
+    return config_filename
 
 
 def add_to_csv(data_list, field_list, output_filename):
