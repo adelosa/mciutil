@@ -2,6 +2,17 @@
 
 History
 =======
+
+0.5.0 (2016-10-03)
+------------------
+* Fixed version display in release version.
+
+0.4.8 (2016-10-02)
+------------------
+* added support for latin1 encoding of csv extract
+* fixes to setup process so that mideu.yml file is installed
+* fixed de43 split to allow more formats for different countries
+
 0.4.6 (2016-08-09)
 ------------------
 * added ``--no1014blocking`` option to allow processing of VBS structure files.
