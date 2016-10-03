@@ -15,7 +15,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
-    'PyYAML', 'hexdump', 'bitarray', 'pymongo', 'argparse'
+    'PyYAML', 'hexdump', 'bitarray', 'argparse'
 ]
 
 test_requirements = [
