@@ -15,5 +15,10 @@ class CliCommonTests(unittest.TestCase):
         filename = get_config_filename('mideu.yml')
         self.assertTrue(os.path.exists(filename))
 
+        print("config filename={0}".format(filename))
+        if not os.path.isdir(".git"):
+            print("Checking that config from site-packages")
+            self.assertNotEqual(filename.find("site-packages"), -1)
+
 if __name__ == '__main__':
     unittest.main()
