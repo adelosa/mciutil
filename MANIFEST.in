@@ -10,6 +10,6 @@ recursive-exclude * *.py[co]
 
 recursive-include docs *.rst conf.py Makefile make.bat
 
-recursive-include *.yml
+recursive-include mciutil *.yml
 include versioneer.py
 include mciutil/_version.py
