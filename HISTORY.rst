@@ -6,6 +6,7 @@ History
 0.5.0 (2016-10-03)
 ------------------
 * Fixed version display in release version.
+* Removed support for mongo extract
 
 0.4.8 (2016-10-02)
 ------------------

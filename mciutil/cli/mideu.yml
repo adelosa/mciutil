@@ -1,8 +1,3 @@
-# Specify mongodb connection details
-mongo_config:
-  host: 192.168.99.100:27017
-  db: test
-
 # Provides specifications for ISO8583 fields
 bit_config:
   1:

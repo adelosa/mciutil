@@ -136,11 +136,6 @@ class CsvOutputTest(TestCase):
         self.assertEqual(field.decode(), 'this is some text')
 
 
-class MongoOutputTest(TestCase):
-    def test_mongo_output(self):
-        pass
-
-
 class FilteredDictionaryTest(TestCase):
     def test_filter_dict(self):
         dict = {"a": b("123"), "b": b("456"), "c": b("789")}
