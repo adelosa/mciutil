@@ -177,6 +177,10 @@ class TestGetMessageElements(TestCase):
         card_number = b("1234567890123456")
         self.assertEqual(_mask_pan(card_number), b"123456*******456")
 
+    def test_mask_pan_prefix(self):
+        card_number = b("1234567890123456")
+        self.assertEqual(_mask_pan(card_number, prefix_only=True), b"123456789")
+
     def test_flip_message_elements_ascii(self):
         message_raw = b(
           "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
