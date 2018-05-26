@@ -352,6 +352,10 @@ def _process_element(bit, bit_config, message_data, source_format):
     if field_processor == 'PAN':
         field_data = _mask_pan(field_data)
 
+    # if field is PAN type, mask the card value
+    if field_processor == 'PAN-PREFIX':
+        field_data = _mask_pan(field_data, prefix_only=True)
+
     # do field conversion to native python type
     field_data = _convert_to_type(field_data, bit_config)
 
@@ -389,7 +393,7 @@ def _set_parameter(config, parameter):
         return ""
 
 
-def _mask_pan(field_data):
+def _mask_pan(field_data, prefix_only=False):
     """
     Mask a pan number string
 
@@ -397,9 +401,10 @@ def _mask_pan(field_data):
     :return: masked pan
     """
     # if field is PAN type, mask the card value
-    return field_data[:6] \
-        + (b("*") * (len(field_data)-9)) \
-        + field_data[len(field_data)-3:len(field_data)]
+    if prefix_only:
+        return field_data[:9]
+    else:
+        return field_data[:6] + (b("*") * (len(field_data)-9)) + field_data[len(field_data)-3:len(field_data)]
 
 
 def _convert_to_type(field_data, bit_config):
@@ -585,6 +590,7 @@ def _get_de43_fields(de43_field):
         field_dict[field] = b(field_dict[field])
 
     return field_dict
+
 
 if sys.version_info < (3,):
     def b(string):

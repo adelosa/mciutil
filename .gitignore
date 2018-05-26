@@ -20,7 +20,7 @@ lib64
 
 # Installer logs
 pip-log.txt
-venv/
+venv**/
 
 # Unit test / coverage reports
 .coverage
