@@ -5,19 +5,49 @@ Contains functions to work with MasterCard formatted files
 """
 from __future__ import print_function
 
-import logging
-import sys
-import struct
+import binascii
+import codecs
 import datetime
 import decimal
-import codecs
+import logging
 import re
-import binascii
+import struct
+import sys
+from array import array
 
-import bitarray
 import hexdump
 
 LOGGER = logging.getLogger(__name__)
+
+
+class BitArray:
+    """
+    This is a minimal native python replacement for the bitarray module that was used to interpret
+    the file bitmap. The bitarray module is written in c and does not provide binary wheels so
+    forces users to have compilers installed just to install mciutil.
+    This small class provides the required functions from that library.
+    """
+    endian = 'big'
+    bytes = b''
+
+    def __init__(self, endian='big'):
+        self.endian = endian
+
+    def frombytes(self, array_bytes):
+        self.bytes = array_bytes
+
+    def tolist(self):
+        swap_bytes = array('B', self.bytes)
+        if self.endian == 'little':
+            for i, n in enumerate(swap_bytes):
+                swap_bytes[i] = int('{:08b}'.format(n)[::-1], 2)
+        width = len(self.bytes)*8
+        try:
+            swapped_bytes = swap_bytes.tobytes()
+        except AttributeError:  # 2.7 does not recognise .tobytes method. 2.6 does!
+            swapped_bytes = swap_bytes.tostring()
+        bit_list = '{bytes:0{width}b}'.format(bytes=int(binascii.hexlify(swapped_bytes), 16), width=width)
+        return [bit == '1' for bit in bit_list]
 
 
 def unblock(blocked_data):
@@ -478,7 +508,8 @@ def _get_bitmap_list(binary_bitmap):
              bitmap
     """
 
-    working_bitmap_list = bitarray.bitarray(endian='big')
+    # working_bitmap_list = bitarray.bitarray(endian='big')
+    working_bitmap_list = BitArray(endian='big')
     working_bitmap_list.frombytes(binary_bitmap)
 
     # Add bit 0 -> original binary bitmap

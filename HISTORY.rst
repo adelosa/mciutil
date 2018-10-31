@@ -3,6 +3,12 @@
 History
 =======
 
+0.6.0 (2018-10-01)
+------------------
+* Removed dependency on bitarray (no binary wheels)
+* Added details on installation for non-python users
+* 2 years almost since last update!
+
 0.5.0 (2016-10-03)
 ------------------
 * Fixed version display in release version.

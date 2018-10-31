@@ -47,9 +47,6 @@ class MideuCommonTestCase(CommandLineTestCase):
         try calling standard entry without sub command.. should return help text
         :return:
         """
-        # run with no parms.. argparse should fail
-        self.assertRaises(SystemExit, lambda: self.parser.parse_args())
-        # run with no parms.. pass none
         _main(None)
 
 
