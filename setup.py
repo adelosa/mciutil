@@ -25,6 +25,7 @@ test_requirements = [
 setup(
     name='mciutil',
     description='MasterCard file utilities',
+    long_description_content_type='text/x-rst',
     long_description=readme + '\n\n' + history,
     author='Anthony Delosa',
     author_email='adelosa@gmail.com',

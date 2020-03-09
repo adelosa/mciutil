@@ -18,7 +18,7 @@ Set of command line utilities to work with various MasterCard files.
 * Documentation: https://mciutil.readthedocs.org.
 
 Warning
--------
+=======
 
 THIS PACKAGE HAS BEEN DEPRECATED AND WILL NOT BE UPDATED GOING FORWARD
 
@@ -39,7 +39,7 @@ It addresses all of the above issues.
 
 
 why not just update mciutil?
-****************************
+----------------------------
 
 Thats a good question. I think because the new codebase as developed from scratch rather than
 via changes to the existing one (there is some borrowed code from mciutil).
@@ -47,7 +47,7 @@ If I just released a new version, anyone leaning on the internal API's would def
 as they are not the same.
 
 Features
---------
+========
 
 Provides the following command line utilities:
 
