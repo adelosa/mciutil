@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
 from unittest import TestCase
+import binascii
 import hexdump
 
 # Public import
@@ -112,6 +116,20 @@ class TestGetMessageElements(TestCase):
         self.assertEqual(message_elements["DE3"], b"111111")
         self.assertEqual(message_elements["DE4"], b"000000009999")
 
+    def test_get_de43_elements_no_pattern_match(self):
+        de43_raw = b("MUMBAI EMV ATM - 2  MUMBAI      IN")
+        de43_elements = _get_de43_fields(de43_raw)
+        self.assertEqual({}, de43_elements)
+
+    def test_get_de43_elements_utf8_char(self):
+        """
+        Issue #30: Latin de43 names causing issues
+        """
+        de43_raw = b("GOLDEN FIELD CAF\xc9\\1163 PINETREE WAY UNIT 10\\COQUITLAM\\V3B8A9    BC CAN")
+        de43_elements = _get_de43_fields(de43_raw)
+        self.assertEqual(de43_elements["DE43_NAME"], b(u"GOLDEN FIELD CAFÉ"))
+        self.assertEqual(de43_elements["DE43_POSTCODE"], b("V3B8A9"))
+
     def test_get_de43_elements(self):
         de43_raw = b("AAMI                  \\36 WICKHAM TERRACE             "
                      "              \\BRISBANE     \\4000      QLDAUS")
@@ -160,6 +178,10 @@ class TestGetMessageElements(TestCase):
         card_number = b("1234567890123456")
         self.assertEqual(_mask_pan(card_number), b"123456*******456")
 
+    def test_mask_pan_prefix(self):
+        card_number = b("1234567890123456")
+        self.assertEqual(_mask_pan(card_number, prefix_only=True), b"123456789")
+
     def test_flip_message_elements_ascii(self):
         message_raw = b(
           "1144\xF0\x10\x05\x42\x84\x61\x80\x02\x02\x00\x00\x04"
@@ -201,3 +223,8 @@ class TestDe55unblock(TestCase):
         self.assertEqual(return_dict['TAG9F36'], b("04dd"))
         self.assertNotEqual(return_dict.get("TAG82", False), False)
         self.assertEqual(return_dict['TAG82'], b("2000"))
+
+    def test_get_de55_null_eof(self):
+        de55_data = binascii.unhexlify('9f26081c89a48c0c4c3a309f2701809f10120110a04001240000000000000000000000ff9f370401bd0f6d9f36020011950500000480009a031909069c01009f02060000000289985f2a020032820239009f1a0200329f03060000000000009f1e0837383636343738349f3303e0f0c89f3501009f090200009f34034203008407a0000000041010910aaf6f5977b4ca292500120000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+        return_dict = _get_icc_fields(de55_data)
+        print(return_dict)

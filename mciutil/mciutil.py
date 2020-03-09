@@ -5,18 +5,49 @@ Contains functions to work with MasterCard formatted files
 """
 from __future__ import print_function
 
-import logging
-import sys
-import struct
+import binascii
+import codecs
 import datetime
 import decimal
-import codecs
-import binascii
+import logging
+import re
+import struct
+import sys
+from array import array
 
-import bitarray
 import hexdump
 
 LOGGER = logging.getLogger(__name__)
+
+
+class BitArray:
+    """
+    This is a minimal native python replacement for the bitarray module that was used to interpret
+    the file bitmap. The bitarray module is written in c and does not provide binary wheels so
+    forces users to have compilers installed just to install mciutil.
+    This small class provides the required functions from that library.
+    """
+    endian = 'big'
+    bytes = b''
+
+    def __init__(self, endian='big'):
+        self.endian = endian
+
+    def frombytes(self, array_bytes):
+        self.bytes = array_bytes
+
+    def tolist(self):
+        swap_bytes = array('B', self.bytes)
+        if self.endian == 'little':
+            for i, n in enumerate(swap_bytes):
+                swap_bytes[i] = int('{:08b}'.format(n)[::-1], 2)
+        width = len(self.bytes)*8
+        try:
+            swapped_bytes = swap_bytes.tobytes()
+        except AttributeError:  # 2.7 does not recognise .tobytes method. 2.6 does!
+            swapped_bytes = swap_bytes.tostring()
+        bit_list = '{bytes:0{width}b}'.format(bytes=int(binascii.hexlify(swapped_bytes), 16), width=width)
+        return [bit == '1' for bit in bit_list]
 
 
 def unblock(blocked_data):
@@ -26,12 +57,19 @@ def unblock(blocked_data):
     :param blocked_data: String containing 1014 blocked data or file
     :return: list of records in file
     """
-
+    block_warning_triggered = False
     file_pointer = 0
     unblock_data = []
 
     while file_pointer <= len(blocked_data):
         unblock_data.append(blocked_data[file_pointer:file_pointer+1012])
+        LOGGER.debug("Block chars [%s]", blocked_data[file_pointer+1012:file_pointer+1014])
+        if not block_warning_triggered and (
+                blocked_data[file_pointer+1012:file_pointer+1014] not in (b(''), b("\x40\x40"))):
+            LOGGER.warn("File may not be in 1014 blocked format - found unusual EOB marker %s, usually x'40'x'40'\n"
+                        "Consider using --no1014blocking option if file is VBS format",
+                        blocked_data[file_pointer+1012:file_pointer+1014])
+            block_warning_triggered = True
         file_pointer += 1014
 
     return vbs_unpack(b("").join(unblock_data))
@@ -59,6 +97,7 @@ def vbs_unpack(vbs_data):
 
         # get numerical record length
         record_length = struct.unpack(">i", record_length_raw)[0]
+        LOGGER.debug("record_length=%s", record_length)
 
         # exit if last record (length=0)
         if record_length == 0:
@@ -174,6 +213,16 @@ def flip_message_encoding(message, bit_config, source_format):
             # Increment the message pointer and process next field
             message_pointer += message_increment
             flipped_message += return_message
+
+    # check that all of message has been consumed, otherwise raise exception
+    if message_pointer != len(message_data):
+        raise Exception(
+            "Message data not correct length. Bitmap indicates len={0}, message is len={1}\n{2}".format(
+                message_pointer,
+                len(message_data),
+                hexdump.hexdump(message_data, result="return")
+            )
+        )
     return flipped_message
 
 
@@ -192,13 +241,13 @@ def _flip_element_encoding(bit_config, message_data, source_format):
     flipped_element = b("")
 
     field_length = bit_config['field_length']
-    print("processing field {0}".format(bit_config["field_name"]))
+    LOGGER.debug("processing field %s", bit_config["field_name"])
 
     length_size = _get_field_length(bit_config)
 
     if length_size > 0:
         field_length_string = message_data[:length_size]
-        print("field_length_string {0}, {1}".format(length_size, field_length_string))
+        LOGGER.debug("field_length_string %s, %s", length_size, field_length_string)
         if source_format == 'ebcdic':
             field_length_string = _convert_text_eb2asc(field_length_string)
             field_length = int(field_length_string)
@@ -252,7 +301,7 @@ def get_message_elements(message, bit_config, source_format):
     * key = 'TAGxxxx' icc fields
 
     """
-
+    LOGGER.debug("Processing message: len=%s contents:\n%s", len(message), hexdump.hexdump(message, result="return"))
     # split raw message into components MessageType(4B), Bitmap(16B),
     # Message(l=*)
     message_length = len(message)-20
@@ -272,6 +321,7 @@ def get_message_elements(message, bit_config, source_format):
 
     for bit in range(2, 128):
         if bitmap_list[bit]:
+            LOGGER.debug("processing bit %s", bit)
             return_message, message_increment = \
                 _process_element(bit,
                                  bit_config[bit],
@@ -281,6 +331,16 @@ def get_message_elements(message, bit_config, source_format):
             # Increment the message pointer and process next field
             message_pointer += message_increment
             return_values.update(return_message)
+
+    # check that all of message has been consumed, otherwise raise exception
+    if message_pointer != len(message_data):
+        raise Exception(
+            "Message data not correct length. Bitmap indicates len={0}, message is len={1}\n{2}".format(
+                message_pointer,
+                len(message_data),
+                hexdump.hexdump(message_data, result="return")
+            )
+        )
 
     return return_values
 
@@ -322,6 +382,10 @@ def _process_element(bit, bit_config, message_data, source_format):
     if field_processor == 'PAN':
         field_data = _mask_pan(field_data)
 
+    # if field is PAN type, mask the card value
+    if field_processor == 'PAN-PREFIX':
+        field_data = _mask_pan(field_data, prefix_only=True)
+
     # do field conversion to native python type
     field_data = _convert_to_type(field_data, bit_config)
 
@@ -359,7 +423,7 @@ def _set_parameter(config, parameter):
         return ""
 
 
-def _mask_pan(field_data):
+def _mask_pan(field_data, prefix_only=False):
     """
     Mask a pan number string
 
@@ -367,9 +431,10 @@ def _mask_pan(field_data):
     :return: masked pan
     """
     # if field is PAN type, mask the card value
-    return field_data[:6] \
-        + (b("*") * (len(field_data)-9)) \
-        + field_data[len(field_data)-3:len(field_data)]
+    if prefix_only:
+        return field_data[:9]
+    else:
+        return field_data[:6] + (b("*") * (len(field_data)-9)) + field_data[len(field_data)-3:len(field_data)]
 
 
 def _convert_to_type(field_data, bit_config):
@@ -443,7 +508,8 @@ def _get_bitmap_list(binary_bitmap):
              bitmap
     """
 
-    working_bitmap_list = bitarray.bitarray(endian='big')
+    # working_bitmap_list = bitarray.bitarray(endian='big')
+    working_bitmap_list = BitArray(endian='big')
     working_bitmap_list.frombytes(binary_bitmap)
 
     # Add bit 0 -> original binary bitmap
@@ -512,7 +578,10 @@ def _get_icc_fields(field_data):
             field_pointer += 1
 
         field_tag_display = binascii.b2a_hex(field_tag)
-        print("field_tag_display={0}".format(field_tag_display))
+        LOGGER.debug("field_tag_display=%s", field_tag_display)
+        # stop processing de55 if low values tag found
+        if field_tag_display == b('00'):
+            break
         field_length_raw = field_data[field_pointer:field_pointer+1]
         field_length = struct.unpack(">B", field_length_raw)[0]
 
@@ -537,16 +606,25 @@ def _get_de43_fields(de43_field):
     :param de43_field: data of pds 43
     :return: dictionary of pds 43 sub elements
     """
+    LOGGER.debug("de43_field=%s", de43_field)
+    de43_regex = (
+        r"(?P<DE43_NAME>.+?) *\\(?P<DE43_ADDRESS>.+?) *\\(?P<DE43_SUBURB>.+?) *\\"
+        r"(?P<DE43_POSTCODE>\S{4,10}) *(?P<DE43_STATE>.{3})(?P<DE43_COUNTRY>.{3})"
+    )
 
-    de43_elements = {}
-    de43_split = de43_field.split(b('\\'))
-    de43_elements["DE43_NAME"] = de43_split[0].rstrip()
-    de43_elements["DE43_ADDRESS"] = de43_split[1].rstrip()
-    de43_elements["DE43_SUBURB"] = de43_split[2].rstrip()
-    de43_elements["DE43_POSTCODE"] = de43_split[3][:4]
-    de43_elements["DE43_STATE"] = de43_split[3][len(de43_split[3])-6:len(de43_split[3])-3]
-    de43_elements["DE43_COUNTRY"] = de43_split[3][len(de43_split[3])-3:len(de43_split[3])]
-    return de43_elements
+    field_match = re.match(de43_regex, de43_field.decode('latin-1'))
+    if not field_match:
+        return dict()
+
+    # get the dict
+    field_dict = field_match.groupdict()
+
+    # set fields in dict to bytes (no effect for py2)
+    for field in field_dict:
+        field_dict[field] = b(field_dict[field])
+
+    return field_dict
+
 
 if sys.version_info < (3,):
     def b(string):

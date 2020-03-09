@@ -9,6 +9,10 @@ from .mciutil import (
     flip_message_encoding, b,
 )
 
+import warnings
+warnings.warn("mciutil project is now deprecated. Please use python module cardutil instead. "
+              "See https://cardutil.readthedocs.io", DeprecationWarning)
+
 __author__ = 'Anthony Delosa'
 __email__ = 'adelosa@gmail.com'
 

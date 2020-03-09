@@ -2,6 +2,40 @@
 
 History
 =======
+
+0.6.0 (2018-10-01)
+------------------
+* Removed dependency on bitarray (no binary wheels)
+* Added details on installation for non-python users
+* 2 years almost since last update!
+
+0.5.0 (2016-10-03)
+------------------
+* Fixed version display in release version.
+* Removed support for mongo extract
+
+0.4.8 (2016-10-02)
+------------------
+* added support for latin1 encoding of csv extract
+* fixes to setup process so that mideu.yml file is installed
+* fixed de43 split to allow more formats for different countries
+
+0.4.6 (2016-08-09)
+------------------
+* added ``--no1014blocking`` option to allow processing of VBS structure files.
+
+0.4.5 (2016-08-06)
+------------------
+* check that all of message consumed by fields otherwise raise exception
+* get rid of a heap of debugging prints that were clogging the output
+* allow freestyle de43 fields with the de43 processor enabled. Use regex rather than string splits
+
+0.4.4-0.4.3 (2016-08-03)
+------------------------
+* Fix issue with mideu when no parameters passed (stack trace)
+* Some more debugging messages provided with -d switch
+* signed the release with key for 0.4.4. need to publish my pub key somewhere..
+
 0.4.2 (2016-03-13)
 ------------------
 * Complete data elements added to default config.

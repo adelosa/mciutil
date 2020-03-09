@@ -34,6 +34,10 @@ def _main(args):
     :param args: argparse arguments
     :return: exit code
     """
+    if not hasattr(args, "loglevel"):
+        print(__name__ + " ("+_version.get_versions()['version']+")")
+        print("try --help for information")
+        return
 
     logging.basicConfig(
         level=args.loglevel,
@@ -61,6 +65,9 @@ def _get_cli_parser():
         description="MasterCard IPM file formatter ({version})".format(
             version=_version.get_versions()['version'])
     )
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s ("+_version.get_versions()['version']+")",
+                        help="Get version information")
 
     subparsers = parser.add_subparsers(help="Sub-command help")
 
@@ -97,13 +104,6 @@ def _add_extract_args(parser):
     :param parser: the argparse parser
     :return: None
     """
-    mongo_arg_group = parser.add_argument_group("mongo output options")
-    mongo_arg_group.add_argument("--mongo",
-                                 help="add to mongo",
-                                 action="store_true")
-    mongo_arg_group.add_argument("--mongohost", help="mongo hostname")
-    mongo_arg_group.add_argument("--mongodb", help="mongo db")
-
     csv_arg_group = parser.add_argument_group("csv output options")
     csv_arg_group.add_argument("--csvoutputfile", help="Output filename")
 

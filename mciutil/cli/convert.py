@@ -9,7 +9,7 @@ from __future__ import print_function
 import logging
 import yaml
 
-from mciutil import flip_message_encoding, unblock, block
+from mciutil import flip_message_encoding, unblock, block, vbs_unpack, vbs_pack
 from mciutil.cli.common import get_config_filename
 
 LOGGER = logging.getLogger(__name__)
@@ -28,7 +28,10 @@ def convert_command(args):
     LOGGER.info("%s bytes read from %s", len(input_data), args.input)
 
     # Unblock input
-    input_data = unblock(input_data)
+    if args.no_1014_blocking:
+        input_data = vbs_unpack(input_data)
+    else:
+        input_data = unblock(input_data)
 
     # get config filename
     config_filename = get_config_filename("mideu.yml")
@@ -46,7 +49,10 @@ def convert_command(args):
         ) for record in input_data
     ]
 
-    output_data = block(output_records)
+    if args.no_1014_blocking:
+        output_data = vbs_pack(output_records)
+    else:
+        output_data = block(output_records)
 
     print("\nCompleted processing {0} records".format(len(input_data)))
 

@@ -1,7 +1,5 @@
 versioneer
 wheel==0.23.0
 hexdump>=3.2
-bitarray>=0.8.1
 PyYAML>=3.10
-pymongo>=3.0.3
 argparse>=1.4.0
