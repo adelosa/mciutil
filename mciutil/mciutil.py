@@ -579,6 +579,9 @@ def _get_icc_fields(field_data):
 
         field_tag_display = binascii.b2a_hex(field_tag)
         LOGGER.debug("field_tag_display=%s", field_tag_display)
+        # stop processing de55 if low values tag found
+        if field_tag_display == b('00'):
+            break
         field_length_raw = field_data[field_pointer:field_pointer+1]
         field_length = struct.unpack(">B", field_length_raw)[0]
 

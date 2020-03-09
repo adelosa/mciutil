@@ -11,6 +11,13 @@ import csv
 from pkg_resources import resource_filename
 
 LOGGER = logging.getLogger(__name__)
+# this module gets loaded by all the CLI programs so will emit message
+# for all cli programs.
+print("""!!! WARINING !!!
+mciutil module has been deprecated
+Please consider using module cardutil instead
+see https://cardutil.readthedocs.io
+""")
 
 
 def update_cli_progress(current_val, end_val, bar_length=20):
